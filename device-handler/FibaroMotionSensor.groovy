@@ -276,7 +276,7 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd)
 {
     log.debug "%%%% Device ${device.displayName} woke up"
-    reponse([[descriptionText: "${device.displayName} woke up", isStateChange: false], sync_properties()])
+    response([[descriptionText: "${device.displayName} woke up", isStateChange: false], delayBetween(sync_properties(), 1000)])
 }
 
 /**
