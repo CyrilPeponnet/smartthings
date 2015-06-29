@@ -22,7 +22,7 @@
 */
 
 /**
- * Sets up metadata, simulator info and tile definition.
+ * Sets up metadata, preferences simulator info and tile definition.
  *
  */
 
@@ -44,11 +44,12 @@ metadata {
     }
 
     preferences {
-        input description: "When changing these values make sure you triple click the sensor b-button (inside) to wake up\
-                            the device (blue light displays) BEFORE clicking done on this page. You can resend the current\
-                            configuration with the Push Setting button as well (device need to be awake) or wait for your \
-                            device to wake up.",
+        input description: "Once you change values on this page, the `Synced` Status will become `pending` status.\
+                            You can then force the sync by triple click the b-button on the device or wait for the\
+                            next WakeUp (every 2 hours).",
+
               displayDuringSetup: false, type: "paragraph", element: "paragraph"
+
         generate_preferences(configuration_model())
     }
 
@@ -80,6 +81,7 @@ metadata {
                 batteryLevel: i).incomingMessage()
         }
     }
+
     tiles {
         standardTile("motion", "device.motion", width: 2, height: 2) {
             state "active", label:'motion', icon:"st.motion.motion.active", backgroundColor:"#53a7c0"
@@ -87,7 +89,8 @@ metadata {
         }
         valueTile("temperature", "device.temperature", inactiveLabel: false) {
             state "temperature", label:'${currentValue}',
-            backgroundColors:[
+            backgroundColors:
+            [
                 [value: 31, color: "#153591"],
                 [value: 44, color: "#1e9cbb"],
                 [value: 59, color: "#90d2a7"],
@@ -403,11 +406,8 @@ def update_needed_settings()
                     def value = [valueHigh, valueLow]
                     cmds << zwave.configurationV1.configurationSet(configurationValue: value, parameterNumber: it.@index.toInteger(), size: 2).format()
                 break
-
             }
-
             cmds << zwave.configurationV1.configurationGet(parameterNumber: it.@index.toInteger()).format()
-
         }
     }
     sendEvent(name:"needUpdate", value: isUpdateNeeded, displayed:false, isStateChange: true)
