@@ -143,7 +143,7 @@ def generate_preferences(configuration_model)
             case "list":
                 input "${it.@index}", "enum",
                     title:"${it.@index} - ${it.@label}",
-                    description: "${it.text()}", default: it.Item.find{node-> node.@value == it.@value}.@label,
+                    description: "${it.text()}", defaultValue: it.Item.find{node-> node.@value == it.@value}.@label,
                     options: it.Item.@label
             break
         }
@@ -279,7 +279,7 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd)
 {
     log.debug "%%%% Device ${device.displayName} woke up"
-    return [[descriptionText: "${device.displayName} woke up", isStateChange: false], response(delayBetween(sync_properties(), 1000))]
+    return [createEvent([descriptionText: "${device.displayName} woke up", isStateChange: false]), response(delayBetween(sync_properties(), 1000))]
 }
 
 /**
