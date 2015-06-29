@@ -276,6 +276,7 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd)
 {
     log.debug "%%%% Device ${device.displayName} woke up"
+    reponse([[descriptionText: "${device.displayName} woke up", isStateChange: false], sync_properties()])
 }
 
 /**
@@ -411,23 +412,17 @@ def update_needed_settings()
     }
     sendEvent(name:"needUpdate", value: isUpdateNeeded, displayed:false, isStateChange: true)
 
-    cmds
+    return cmds
 }
 
- /**
- * Configures the device to settings needed by SmarthThings at device discovery time.
- * Need a triple click on B-button to zwave commands to pass
- */
-def configure() {
-    log.debug "Configuring Device For SmartThings Use"
-    def cmds = []
+/**
+* Try to sync properties with the device
+*/
+def sync_properties()
+{
     def currentProperties = device.currentValue("currentProperties") ? parseJson(device.currentValue("currentProperties")) : [:]
     def configuration = parseXml(configuration_model())
-
-    // Associate Group 3 Device Status (Group 1 is for Basic direct action -switches-, Group 2 for Tamper Alerts System -alarm-)
-    // Hub need to be Associate to group 3
-    cmds << zwave.associationV2.associationSet(groupingIdentifier:3, nodeId:[zwaveHubNodeId]).format()
-
+    def cmds = []
     configuration.Value.each
     {
         if (! currentProperties."${it.@index}" || currentProperties."${it.@index}" == null)
@@ -437,8 +432,22 @@ def configure() {
     }
 
     if (device.currentValue("needUpdate") == "YES") { cmds.addAll(update_needed_settings()) }
+    return cmds
+}
 
-    delayBetween(cmds, 1000)
+/**
+* Configures the device to settings needed by SmarthThings at device discovery time.
+* Need a triple click on B-button to zwave commands to pass
+*/
+def configure() {
+    log.debug "Configuring Device For SmartThings Use"
+    def cmds = []
+
+    // Associate Group 3 Device Status (Group 1 is for Basic direct action -switches-, Group 2 for Tamper Alerts System -alarm-)
+    // Hub need to be Associate to group 3
+    cmds << zwave.associationV2.associationSet(groupingIdentifier:3, nodeId:[zwaveHubNodeId]).format()
+    cmds.addAll(sync_properties())
+    delayBetween(cmds , 1000)
 }
 
 /**
