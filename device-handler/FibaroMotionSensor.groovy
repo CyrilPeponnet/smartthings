@@ -126,10 +126,6 @@ metadata {
 */
 def generate_preferences(configuration_model)
 {
-    // TODO we should here get the json if any and set current values as defaults values for place holders
-    // but there is a bug and the default value is not appearing at all (same for enum -> no options)
-    // To convert for display def currentValue = cmd.size == 1 ? cmd.configurationValue[0] : ((cmd.configurationValue[0] & 0xFF) << 8) | (cmd.configurationValue[1] & 0xFF)
-
     def configuration = parseXml(configuration_model)
     configuration.Value.each
     {
@@ -138,13 +134,15 @@ def generate_preferences(configuration_model)
             case ["byte","short"]:
                 input "${it.@index}", "number",
                     title:"${it.@index} - ${it.@label}\n" + "${it.Help}",
-                    defaultValue:it.@value
+                    defaultValue: "${it.@value}"
             break
             case "list":
+                def items = []
+                it.Item.each { items << ["${it.@value}":"${it.@label}"] }
                 input "${it.@index}", "enum",
-                    title:"${it.@index} - ${it.@label}",
-                    description: "${it.text()}", defaultValue: it.Item.find{node-> node.@value == it.@value}.@label,
-                    options: it.Item.@label
+                    title:"${it.@index} - ${it.@label}\n" + "${it.Help}",
+                    defaultValue: "${it.@value}",
+                    options: items
             break
         }
     }
@@ -421,13 +419,12 @@ def update_needed_settings()
 def sync_properties()
 {
     def currentProperties = device.currentValue("currentProperties") ? parseJson(device.currentValue("currentProperties")) : [:]
-    def configuration = parseXml(configuration_model())
     def cmds = []
-    configuration.Value.each
+    settings.each
     {
-        if (! currentProperties."${it.@index}" || currentProperties."${it.@index}" == null)
+        if (! currentProperties."${it.key}" || currentProperties."${it.key}" == null)
         {
-            cmds << zwave.configurationV1.configurationGet(parameterNumber: it.@index.toInteger()).format()
+            cmds << zwave.configurationV1.configurationGet(parameterNumber: it.key.toInteger()).format()
         }
     }
 
