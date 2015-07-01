@@ -119,10 +119,9 @@ metadata {
     }
 }
 
-
 /**
 * This function generate the preferences menu from the XML file
-* each input will be accessible from settings map.
+* each input will be accessible from settings map object.
 */
 def generate_preferences(configuration_model)
 {
@@ -147,7 +146,6 @@ def generate_preferences(configuration_model)
         }
     }
 }
-
 
 /**
 * Parse incoming device messages to generate events
@@ -174,7 +172,7 @@ def parse(String description)
         default:
             def cmd = zwave.parse(description, [0x72: 2, 0x31: 2, 0x30: 1, 0x84: 1, 0x9C: 1, 0x70: 2, 0x80: 1, 0x86: 1, 0x7A: 1, 0x56: 1])
             if (cmd) {
-                result << zwaveEvent(cmd)
+                result += zwaveEvent(cmd)
             }
         break
     }
@@ -277,7 +275,11 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd)
 {
     log.debug "%%%% Device ${device.displayName} woke up"
-    return [createEvent([descriptionText: "${device.displayName} woke up", isStateChange: false]), response(delayBetween(sync_properties(), 1000))]
+    def commands = sync_properties()
+    sendEvent(descriptionText: "${device.displayName} woke up", isStateChange: false)
+    // Adding No More infomration needed at the end
+    commands << zwave.wakeUpV1.wakeUpNoMoreInformation().format()
+    response(delayBetween(commands, 1000))
 }
 
 /**
@@ -428,7 +430,7 @@ def sync_properties()
         }
     }
 
-    if (device.currentValue("needUpdate") == "YES") { cmds.addAll(update_needed_settings()) }
+    if (device.currentValue("needUpdate") == "YES") { cmds += update_needed_settings() }
     return cmds
 }
 
@@ -443,7 +445,7 @@ def configure() {
     // Associate Group 3 Device Status (Group 1 is for Basic direct action -switches-, Group 2 for Tamper Alerts System -alarm-)
     // Hub need to be Associate to group 3
     cmds << zwave.associationV2.associationSet(groupingIdentifier:3, nodeId:[zwaveHubNodeId]).format()
-    cmds.addAll(sync_properties())
+    cmds += sync_properties()
     delayBetween(cmds , 1000)
 }
 
