@@ -279,7 +279,7 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd)
     sendEvent(descriptionText: "${device.displayName} woke up", isStateChange: false)
     // Adding No More infomration needed at the end
     commands << zwave.wakeUpV1.wakeUpNoMoreInformation().format()
-    response(delayBetween(commands, 1000))
+    response(delayBetween(commands, 1500))
 }
 
 /**
@@ -446,7 +446,7 @@ def configure() {
     // Hub need to be Associate to group 3
     cmds << zwave.associationV2.associationSet(groupingIdentifier:3, nodeId:[zwaveHubNodeId]).format()
     cmds += sync_properties()
-    delayBetween(cmds , 1000)
+    delayBetween(cmds , 1500)
 }
 
 /**
