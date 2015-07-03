@@ -5,13 +5,16 @@ This is my attempt to improve the existing device-handler by adding *ALL* availa
 ## How it looks
 
 Main screen
-![main screen](https://dl.dropboxusercontent.com/u/2663552/Github/Smartthings/FibaroMotionSensor/thumb_IMG_0399_1024.jpg)
+
+[[https://dl.dropboxusercontent.com/u/2663552/Github/Smartthings/FibaroMotionSensor/thumb_IMG_0399_1024.jpg|width=100px]]
 
 Settings part:
-![Settings](https://dl.dropboxusercontent.com/u/2663552/Github/Smartthings/FibaroMotionSensor/thumb_IMG_0400_1024.jpg)
+
+[[https://dl.dropboxusercontent.com/u/2663552/Github/Smartthings/FibaroMotionSensor/thumb_IMG_0400_1024.jpg||width=100px]]
 
 Pending state:
-![pending](https://dl.dropboxusercontent.com/u/2663552/Github/Smartthings/FibaroMotionSensor/thumb_IMG_0401_1024.jpg)
+
+[[https://dl.dropboxusercontent.com/u/2663552/Github/Smartthings/FibaroMotionSensor/thumb_IMG_0401_1024.jpg||width=100px]]
 
 
 ## About the preferences synchronization (Synced/Pending state)
