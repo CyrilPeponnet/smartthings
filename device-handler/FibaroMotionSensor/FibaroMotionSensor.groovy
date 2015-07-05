@@ -29,7 +29,6 @@
 metadata {
     definition (name: "Fibaro Motion Sensor", namespace: "FibaroMotionSensor", author: "SmartThings") {
 
-        attribute   "currentProperties", "string"
         attribute   "needUpdate", "string"
 
         capability  "Acceleration Sensor"
@@ -373,7 +372,7 @@ def updated()
 */
 def update_current_properties(cmd)
 {
-    def currentProperties = device.currentValue("currentProperties") ? parseJson(device.currentValue("currentProperties")) : [:]
+    def currentProperties = state.currentProperties ?: [:]
 
     currentProperties."${cmd.parameterNumber}" = cmd.configurationValue
 
@@ -389,7 +388,7 @@ def update_current_properties(cmd)
         }
     }
 
-    sendEvent(name:"currentProperties", value: groovy.json.JsonOutput.toJson(currentProperties), displayed:false)
+    state.currentProperties = currentProperties
 }
 
 /**
@@ -398,7 +397,7 @@ def update_current_properties(cmd)
 def update_needed_settings()
 {
     def cmds = []
-    def currentProperties = device.currentValue("currentProperties") ? parseJson(device.currentValue("currentProperties")) : [:]
+    def currentProperties = state.currentProperties ?: [:]
     def configuration = parseXml(configuration_model())
     def isUpdateNeeded = "NO"
     configuration.Value.each
@@ -436,7 +435,7 @@ def update_needed_settings()
 */
 def sync_properties()
 {
-    def currentProperties = device.currentValue("currentProperties") ? parseJson(device.currentValue("currentProperties")) : [:]
+    def currentProperties = state.currentProperties ?: [:]
     def cmds = []
     settings.each
     {
