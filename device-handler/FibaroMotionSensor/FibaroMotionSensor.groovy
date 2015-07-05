@@ -27,7 +27,7 @@
  */
 
 metadata {
-    definition (name: "Fibaro Motion Sensor", namespace: "FibarMotionSensor", author: "SmartThings") {
+    definition (name: "Fibaro Motion Sensor", namespace: "FibaroMotionSensor", author: "SmartThings") {
 
         attribute   "currentProperties", "string"
         attribute   "needUpdate", "string"
@@ -463,7 +463,7 @@ def configuration_model()
 <configuration>
   <Value type="byte" index="1" label="Motion sensor\' sensitivity" min="0" max="255" value="10">
     <Help>
-The lower the value, the more sensitive the PIR sensor.
+The lower the valueis , the more sensitive the PIR sensor will be.
 Available settings: 8 - 255
 Default setting: 10
     </Help>
