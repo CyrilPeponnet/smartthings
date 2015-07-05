@@ -39,7 +39,7 @@ If you look at the live logging from the IDE you will see actions been done.
 
 ## Known issues
 
-- Current values are not shown once set on iOS. This is a (smartthings issue)[http://community.smartthings.com/t/reported-input-number-in-device-handler-weird-behavior/18717] and should be resolved soon.
+- Current values are not shown once set on iOS. This is a [smartthings issue](http://community.smartthings.com/t/reported-input-number-in-device-handler-weird-behavior/18717) and should be resolved soon.
 
 ## Use full links:
 
