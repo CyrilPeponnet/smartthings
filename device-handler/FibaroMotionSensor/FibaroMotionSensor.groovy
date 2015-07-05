@@ -264,9 +264,19 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv2.SensorMultilevelR
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
-    log.debug "%%%% Battery Report"
-    def level = cmd.batteryLevel > 0 ? cmd.batteryLevel.toString() : 1
-    createEvent([ name: "battery", unit: "%", displayed: false, value: level ])
+    def map = [ name: "battery", unit: "%" ]
+    if (cmd.batteryLevel == 0xFF)
+    {
+        map.value = 1
+        map.descriptionText = "${device.displayName} battery is low"
+        map.isStateChange = true
+    }
+    else
+    {
+        map.value = cmd.batteryLevel
+    }
+    state.lastBatteryReport = now()
+    createEvent(map)
 }
 
 /**
@@ -277,10 +287,16 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd)
     log.debug "%%%% Device ${device.displayName} woke up"
     def commands = sync_properties()
     sendEvent(descriptionText: "${device.displayName} woke up", isStateChange: false)
+    // check if we need to request battery level (every 48h)
+    if (!state.lastBatteryReport || (now() - state.lastBatteryReport)/60000 >= 60 * 48)
+    {
+        commands << zwave.batteryV1.batteryGet().format()
+    }
     // Adding No More infomration needed at the end
     commands << zwave.wakeUpV1.wakeUpNoMoreInformation().format()
     response(delayBetween(commands, 1500))
 }
+
 
 /**
 * This will be called each time we update a paramter. Use it to fill our currents parameters as a callback
