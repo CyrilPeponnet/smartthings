@@ -417,7 +417,7 @@ def update_needed_settings()
                 break
                 case "short":
                     def short valueLow   = settings."${it.@index}" & 0xFF
-                    def short valueHight = (settings."${it.@index}" >> 8) & 0xFF
+                    def short valueHigh = (settings."${it.@index}" >> 8) & 0xFF
                     def value = [valueHigh, valueLow]
                     cmds << zwave.configurationV1.configurationSet(configurationValue: value, parameterNumber: it.@index.toInteger(), size: 2).format()
                 break
