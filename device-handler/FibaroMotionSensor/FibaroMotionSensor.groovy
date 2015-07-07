@@ -27,7 +27,7 @@
  */
 
 metadata {
-    definition (name: "Fibaro Motion Sensor", namespace: "FibaroMotionSensor", author: "SmartThings") {
+    definition (name: "Fibaro Motion Sensor", namespace: "CyrilPeponnet", author: "Cyril Peponnet") {
 
         attribute   "needUpdate", "string"
 
