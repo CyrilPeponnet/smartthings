@@ -247,11 +247,13 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd)
 def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv2.SensorMultilevelReport cmd)
 {
     log.debug "%%%% Multi Sensor Report"
-    def map = [ displayed: true, value: cmd.scaledSensorValue.toString() ]
+    def map = [ displayed: true ]
     switch (cmd.sensorType) {
         case 1:
             map.name = "temperature"
-            map.unit = cmd.scale == 1 ? "F" : "C"
+            def cmdScale = cmd.scale == 1 ? "F" : "C"
+            map.value = convertTemperatureIfNeeded(cmd.scaledSensorValue, cmdScale, cmd.precision)
+            map.unit  = getTemperatureScale()
             break;
         case 3:
             map.name = "illuminance"
@@ -404,6 +406,7 @@ def update_needed_settings()
     {
         if (currentProperties."${it.@index}" == null)
         {
+            log.debug "Current value of parameter ${it.@index} is unknown"
             isUpdateNeeded = "YES"
         }
         else if (settings."${it.@index}" != null && cmd2Integer(currentProperties."${it.@index}") != settings."${it.@index}".toInteger())
@@ -443,6 +446,7 @@ def sync_properties()
     {
         if (! currentProperties."${it.@index}" || currentProperties."${it.@index}" == null)
         {
+            log.debug "Looking for current value of parameter ${it.@index}"
             cmds << zwave.configurationV1.configurationGet(parameterNumber: it.@index.toInteger()).format()
         }
     }
@@ -480,7 +484,7 @@ def configuration_model()
 <configuration>
   <Value type="byte" index="1" label="Motion sensor\' sensitivity" min="0" max="255" value="10">
     <Help>
-The lower the valueis , the more sensitive the PIR sensor will be.
+The lower the value is , the more sensitive the PIR sensor will be.
 Available settings: 8 - 255
 Default setting: 10
     </Help>
