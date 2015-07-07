@@ -436,12 +436,14 @@ def update_needed_settings()
 def sync_properties()
 {
     def currentProperties = state.currentProperties ?: [:]
+    def configuration = parseXml(configuration_model())
+
     def cmds = []
-    settings.each
+    configuration.Value.each
     {
-        if (! currentProperties."${it.key}" || currentProperties."${it.key}" == null)
+        if (! currentProperties."${it.@index}" || currentProperties."${it.@index}" == null)
         {
-            cmds << zwave.configurationV1.configurationGet(parameterNumber: it.key.toInteger()).format()
+            cmds << zwave.configurationV1.configurationGet(parameterNumber: it.@index.toInteger()).format()
         }
     }
 
