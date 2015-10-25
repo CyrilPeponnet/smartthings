@@ -37,6 +37,10 @@ metadata {
 def parse(String description) {
 }
 
+def on() {
+    push()
+}
+
 def push() {
     parent.pushScene(this)
     sendEvent(name: "momentary", value: "pushed", isStateChange: true)
