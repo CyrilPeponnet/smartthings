@@ -2,6 +2,8 @@
 
 This is my attempt to improve the existing HueConnect smartapp by adding scene handling.
 
+You can now add the scene you want this will create for you a push button to enable scenes. \o/
+
 ## How it looks
 
 SmartApp
