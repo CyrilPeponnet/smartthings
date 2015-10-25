@@ -17,7 +17,7 @@
  */
 
 definition(
-    name: "Hue (Connect)",
+    name: "Hue (ReConnect)",
     namespace: "smartthings",
     author: "SmartThings",
     description: "Allows you to connect your Philips Hue lights with SmartThings and control them from your Things area or Dashboard in the SmartThings Mobile app. Adjust colors by going to the Thing detail screen for your Hue lights (tap the gear on Hue tiles).\n\nPlease update your Hue Bridge first, outside of the SmartThings app, using the Philips Hue app.",
@@ -30,14 +30,14 @@ preferences {
     page(name:"mainPage", title:"Hue Device Setup", content:"mainPage", refreshTimeout:5)
     page(name:"bridgeDiscovery", title:"Hue Bridge Discovery", content:"bridgeDiscovery", refreshTimeout:5)
     page(name:"bridgeBtnPush", title:"Linking with your Hue", content:"bridgeLinking", refreshTimeout:5)
-    page(name:"bulbDiscovery", title:"Hue Device Setup", content:"bulbDiscovery", refreshTimeout:5)
+    page(name:"itemDiscovery", title:"Hue Device Setup", content:"itemDiscovery", refreshTimeout:5)
 }
 
 def mainPage() {
     if(canInstallLabs()) {
         def bridges = bridgesDiscovered()
         if (state.username && bridges) {
-            return bulbDiscovery()
+            return itemDiscovery()
         } else {
             return bridgeDiscovery()
         }
@@ -108,7 +108,7 @@ def bridgeLinking()
         hueimage = null
     }
     if (state.username) { //if discovery worked
-        nextPage = "bulbDiscovery"
+        nextPage = "itemDiscovery"
         title = "Success!"
         paragraphText = "Linking to your hub was a success! Please click 'Next'!"
         hueimage = null
@@ -127,29 +127,37 @@ def bridgeLinking()
     }
 }
 
-def bulbDiscovery() {
+def itemDiscovery() {
     int bulbRefreshCount = !state.bulbRefreshCount ? 0 : state.bulbRefreshCount as int
     state.bulbRefreshCount = bulbRefreshCount + 1
     def refreshInterval = 3
-    state.inBulbDiscovery = true
+    state.inItemDiscovery = true
     def bridge = null
     if (selectedHue) {
         bridge = getChildDevice(selectedHue)
         subscribe(bridge, "bulbList", bulbListData)
+        subscribe(bridge, "sceneList", sceneListData)
     }
     state.bridgeRefreshCount = 0
     def bulboptions = bulbsDiscovered() ?: [:]
-    def numFound = bulboptions.size() ?: 0
-    if (numFound == 0)
+    def bulbs_numFound = bulboptions.size() ?: 0
+    if (bulbs_numFound == 0)
         app.updateSetting("selectedBulbs", "")
+
+    def scenesoptions = scenesDiscovered() ?: [:]
+    def scenes_numFound = scenesoptions.size() ?: 0
+    if (scenes_numFound == 0)
+        app.updateSetting("selectedScenes", "")
 
     if((bulbRefreshCount % 3) == 0) {
         discoverHueBulbs()
+        discoverHueScenes()
     }
 
-    return dynamicPage(name:"bulbDiscovery", title:"Bulb Discovery Started!", nextPage:"", refreshInterval:refreshInterval, install:true, uninstall: true) {
+    return dynamicPage(name:"itemDiscovery", title:"Bulb Discovery Started!", nextPage:"", refreshInterval:refreshInterval, install:true, uninstall: true) {
         section("Please wait while we discover your Hue Bulbs. Discovery can take five minutes or more, so sit back and relax! Select your device below once discovered.") {
-            input "selectedBulbs", "enum", required:false, title:"Select Hue Bulbs (${numFound} found)", multiple:true, options:bulboptions
+            input "selectedBulbs", "enum", required:false, title:"Select Hue Bulbs (${bulbs_numFound} found)", multiple:true, options:bulboptions.sort {it.value}
+            input "selectedScenes", "enum", required:false, title:"Select Hue Scenes (${scenes_numFound} found)", multiple:true, options:scenesoptions.sort {it.value}
         }
         section {
             def title = getBridgeIP() ? "Hue bridge (${getBridgeIP()})" : "Find bridges"
@@ -180,6 +188,16 @@ private discoverHueBulbs() {
     sendHubCommand(new physicalgraph.device.HubAction([
         method: "GET",
         path: "/api/${state.username}/lights",
+        headers: [
+            HOST: host
+        ]], "${selectedHue}"))
+}
+
+private discoverHueScenes() {
+    def host = getBridgeIP()
+    sendHubCommand(new physicalgraph.device.HubAction([
+        method: "GET",
+        path: "/api/${state.username}/scenes",
         headers: [
             HOST: host
         ]], "${selectedHue}"))
@@ -227,19 +245,45 @@ Map bulbsDiscovered() {
         bulbs.each {
             def value = "${it.name}"
             def key = app.id +"/"+ it.id
-            logg += "$value - $key, "
             bulbmap["${key}"] = value
         }
     }
     return bulbmap
 }
 
+Map scenesDiscovered() {
+    def scenes =  getHueScenes()
+    def scenemap = [:]
+    if (scenes instanceof java.util.Map) {
+        scenes.each {
+            def value = "${it.value.name.minus(~/ on \d+/)} ${it.value.lights}"
+            def key = app.id +"/"+ it.value.id
+            scenemap["${key}"] = value
+        }
+    } else { //backwards compatable
+        scenes.each {
+            def value = "${it.name}"
+            def key = app.id +"/"+ it.id
+            scenemap["${key}"] = value
+        }
+    }
+    return scenemap
+}
+
 def bulbListData(evt) {
     state.bulbs = evt.jsonData
 }
 
+def sceneListData(evt) {
+    state.scenes = evt.jsonData
+}
+
 Map getHueBulbs() {
     state.bulbs = state.bulbs ?: [:]
+}
+
+Map getHueScenes() {
+    state.scenes = state.scenes ?: [:]
 }
 
 def getHueBridges() {
@@ -265,12 +309,14 @@ def updated() {
 def initialize() {
     log.debug "Initializing"
     unsubscribe(bridge)
-    state.inBulbDiscovery = false
+    state.inItemDiscovery = false
+    state.inSceneDiscovery = false
     state.bridgeRefreshCount = 0
     state.bulbRefreshCount = 0
     if (selectedHue) {
         addBridge()
         addBulbs()
+        addScenes()
         doDeviceSync()
         runEvery5Minutes("doDeviceSync")
     }
@@ -288,26 +334,41 @@ def uninstalled(){
     state.username = null
 }
 
-// Handles events to add new bulbs
-def bulbListHandler(hub, data = "") {
-    def msg = "Bulbs list not processed. Only while in settings menu."
+// Handles events to add new items
+
+def itemListHandler(hub, data = "") {
+    def msg = "Item list not processed. Only while in settings menu."
+    def scenes = [:]
     def bulbs = [:]
-    if (state.inBulbDiscovery) {
-        def logg = ""
-        log.trace "Adding bulbs to state..."
-        state.bridgeProcessedLightList = true
+    if (state.inItemDiscovery) {
+        log.trace "Adding items to state..."
+        state.bridgeProcessedItemList = true
         def object = new groovy.json.JsonSlurper().parseText(data)
         object.each { k,v ->
-            if (v instanceof Map)
-                bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
+            if (v instanceof Map) {
+                if (v.get("type"))
+                    bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
+                else {
+                    if (v.active) {
+                        def lights = []
+                        v.lights.each { light -> lights << state.bulbs?."${light}".name}
+                        scenes[k] = [id: k, name: v.name, hub:hub, lights:lights]
+                    }
+                }
+            }
         }
     }
     def bridge = null
     if (selectedHue)
         bridge = getChildDevice(selectedHue)
-    bridge.sendEvent(name: "bulbList", value: hub, data: bulbs, isStateChange: true, displayed: false)
-    msg = "${bulbs.size()} bulbs found. ${bulbs}"
-    return msg
+    if (scenes.size() > 0) {
+        bridge.sendEvent(name: "sceneList", value: hub, data: scenes, isStateChange: true, displayed: false)
+        return "${scenes.size()} scenes found. ${scenes}"
+    }
+    else if (bulbs.size() > 0) {
+        bridge.sendEvent(name: "bulbList", value: hub, data: bulbs, isStateChange: true, displayed: false)
+        return "${bulbs.size()} bulbs found. ${bulbs}"
+    }
 }
 
 def addBulbs() {
@@ -338,6 +399,38 @@ def addBulbs() {
                 if (newHueBulb?.value?.type?.equalsIgnoreCase("Dimmable light") && d.typeName == "Hue Bulb") {
                     d.setDeviceType("Hue Lux Bulb")
                 }
+            }
+        }
+    }
+}
+
+def addScenes() {
+    def scenes = getHueScenes()
+    selectedScenes?.each { dni ->
+        def d = getChildDevice(dni)
+        if(!d) {
+            def newHueScene
+            if (scenes instanceof java.util.Map) {
+                newHueScene = scenes.find { (app.id + "/" + it.value.id) == dni }
+                d = addChildDevice("smartthings", "Hue Scene", dni, newHueScene?.value.hub, ["name":newHueScene?.value.name.minus(~/ on \d+/)])
+                def childDevice = getChildDevice(d.deviceNetworkId)
+                childDevice.sendEvent(name: "lights", value: newHueScene?.value.lights)
+
+            } else {
+                //backwards compatable
+                newHueScene = bulbs.find { (app.id + "/" + it.id) == dni }
+                d = addChildDevice("smartthings", "Hue Scene", dni, newHueScene?.hub, ["name":newHueScene?.name.minus(~/ on \d+/)])
+                def childDevice = getChildDevice(d.deviceNetworkId)
+                childDevice.sendEvent(name: "lights", value: newHueScene?.lights)
+            }
+
+            log.debug "created ${d.displayName} with id $dni"
+            d.refresh()
+        } else {
+            log.debug "found ${d.displayName} with id $dni already exists, type: '$d.typeName'"
+            if (scenes instanceof java.util.Map) {
+                def newHueScene = scenes.find { (app.id + "/" + it.value.id) == dni }
+                d.setDeviceType("Hue Scene")
             }
         }
     }
@@ -477,9 +570,14 @@ def locationHandler(evt) {
                 //GET /api/${state.username}/lights response (application/json)
                 if (!body?.state?.on) { //check if first time poll made it here by mistake
                     def bulbs = getHueBulbs()
-                    log.debug "Adding bulbs to state!"
+                    def scenes = getHueScenes()
+                    log.debug "Adding bulbs and scenes to state!"
                     body.each { k,v ->
-                        bulbs[k] = [id: k, name: v.name, type: v.type, hub:parsedEvent.hub]
+                        if ( v.get("type") )
+                            bulbs[k] = [id: k, name: v.name, type: v.type, hub:parsedEvent.hub]
+                        else
+                            scenes[k] = [id: k, name: v.name, hub:parsedEvent.hub]
+
                     }
                 }
             }
@@ -531,17 +629,6 @@ def parse(childDevice, description) {
                                 def hue = Math.min(Math.round(bulb.value.state.hue * 100 / 65535), 65535) as int
                                 def sat = Math.round(bulb.value.state.sat * 100 / 255) as int
                                 def hex = colorUtil.hslToHex(hue, sat)
-                                sendEvent(d.deviceNetworkId, [name: "color", value: hex])
-                                sendEvent(d.deviceNetworkId, [name: "hue", value: hue])
-                                sendEvent(d.deviceNetworkId, [name: "saturation", value: sat])
-                            }
-                        } else {
-                            sendEvent(d.deviceNetworkId, [name: "switch", value: "off"])
-                            sendEvent(d.deviceNetworkId, [name: "level", value: 100])
-                            if (bulb.value.state.sat) {
-                                def hue = 23
-                                def sat = 56
-                                def hex = colorUtil.hslToHex(23, 56)
                                 sendEvent(d.deviceNetworkId, [name: "color", value: hex])
                                 sendEvent(d.deviceNetworkId, [name: "hue", value: hue])
                                 sendEvent(d.deviceNetworkId, [name: "saturation", value: sat])
@@ -602,6 +689,13 @@ def parse(childDevice, description) {
         log.debug "parse - got something other than headers,body..."
         return []
     }
+}
+
+def pushed(childDevice, transition_deprecated =0 ) {
+    // We are using the default group 0 which contain all the lights
+    // See API
+    put("groups/0/action", [scene: getId(childDevice)])
+    return "pushed"
 }
 
 def on(childDevice, transition_deprecated = 0) {
