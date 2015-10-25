@@ -329,6 +329,10 @@ def manualRefresh() {
     runEvery5Minutes("doDeviceSync")
 }
 
+def timedRefresh() {
+    runIn(5, manualRefresh)
+}
+
 def uninstalled(){
     state.bridges = [:]
     state.username = null

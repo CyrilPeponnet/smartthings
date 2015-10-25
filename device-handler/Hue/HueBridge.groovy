@@ -67,6 +67,8 @@ def parse(description) {
                     def bulbs = new groovy.json.JsonSlurper().parseText(msg.body)
                     if (bulbs.state) {
                         log.info "Bridge response: $msg.body"
+                        if (msg.body =~ /action\/scene/)
+                            parent.timedRefresh()
                     } else {
                         // Sending Bulbs List to parent"
                         if (parent.state.inBulbDiscovery)
