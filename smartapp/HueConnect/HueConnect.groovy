@@ -691,11 +691,11 @@ def parse(childDevice, description) {
     }
 }
 
-def pushed(childDevice, transition_deprecated =0 ) {
+def pushScene(childDevice, transition_deprecated =0 ) {
     // We are using the default group 0 which contain all the lights
     // See API
     put("groups/0/action", [scene: getId(childDevice)])
-    return "pushed"
+    return "Scene pushed"
 }
 
 def on(childDevice, transition_deprecated = 0) {

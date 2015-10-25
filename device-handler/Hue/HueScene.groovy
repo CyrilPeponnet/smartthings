@@ -38,8 +38,6 @@ def parse(String description) {
 }
 
 def push() {
-    parent.pushed(this)
+    parent.pushScene(this)
     sendEvent(name: "momentary", value: "pushed", isStateChange: true)
-    parent.manualRefresh()
-
 }
