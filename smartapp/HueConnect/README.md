@@ -19,7 +19,7 @@ Hue Scene device
 
 Remove all your existing bulbs / and HueConnect SmartApp.
 
-Then a new smartapp in IDE from code and also addd each evices type you can find under HueDevices folder.
+Then create a new smartapp in IDE from code and also add each devices type you can find under HueDevices folder.
 
 ## Important notes
 
