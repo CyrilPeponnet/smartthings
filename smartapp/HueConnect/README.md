@@ -17,7 +17,9 @@ Hue Scene device
 
 ## How to install
 
-Create a new smartapp from code and create each devices type you can find under HueDevices folder.
+Remove all your existing bulbs / and HueConnect SmartApp.
+
+Then a new smartapp in IDE from code and also addd each evices type you can find under HueDevices folder.
 
 ## Important notes
 
