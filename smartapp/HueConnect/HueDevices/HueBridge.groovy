@@ -64,16 +64,25 @@ def parse(description) {
             if (msg.body) {
                 def contentType = msg.headers["Content-Type"]
                 if (contentType?.contains("json")) {
-                    def bulbs = new groovy.json.JsonSlurper().parseText(msg.body)
-                    if (bulbs.state) {
-                        log.info "Bridge response: $msg.body"
-                        if (msg.body =~ /action\/scene/)
-                            parent.timedRefresh()
-                    } else {
-                        // Sending Bulbs List to parent"
-                        if (parent.state.inBulbDiscovery)
-                            log.info parent.itemListHandler(device.hub.id, msg.body)
+                    def response = new groovy.json.JsonSlurper().parseText(msg.body)
+                    log.trace "Bridge response: $msg.body"
+                    if (response instanceof List)
+                    {
+                        response.each{
+                            if (it?.success?."/groups/0/action/scene")
+                            {
+                                log.trace "Scene with id ${it?.success?."/groups/0/action/scene"} has been triggered"
+                                parent.timedRefresh()
+                            }
+                        }
                     }
+                    else if (response instanceof Map)
+                    {
+                        if (parent.state.inItemDiscovery)
+                            log.trace "Get state for ${response.keySet()}"
+                            log.info parent.itemListHandler(device.hub.id, msg.body)
+
+                    } 
                 }
                 else if (contentType?.contains("xml")) {
                     log.debug "HUE BRIDGE ALREADY PRESENT"

@@ -154,8 +154,8 @@ def itemDiscovery() {
         discoverHueScenes()
     }
 
-    return dynamicPage(name:"itemDiscovery", title:"Bulb Discovery Started!", nextPage:"", refreshInterval:refreshInterval, install:true, uninstall: true) {
-        section("Please wait while we discover your Hue Bulbs. Discovery can take five minutes or more, so sit back and relax! Select your device below once discovered.") {
+    return dynamicPage(name:"itemDiscovery", title:"Bulb and scenes Discovery Started!", nextPage:"", refreshInterval:refreshInterval, install:true, uninstall: true) {
+        section("Please wait while we discover your Hue Bulbs and Scenes. Discovery can take several minutes, so sit back and relax! Select your device and scene below once discovered.") {
             input "selectedBulbs", "enum", required:false, title:"Select Hue Bulbs (${bulbs_numFound} found)", multiple:true, options:bulboptions.sort {it.value}
             input "selectedScenes", "enum", required:false, title:"Select Hue Scenes (${scenes_numFound} found)", multiple:true, options:scenesoptions.sort {it.value}
         }
@@ -256,7 +256,8 @@ Map scenesDiscovered() {
     def scenemap = [:]
     if (scenes instanceof java.util.Map) {
         scenes.each {
-            def value = "${it.value.name.minus(~/ on \d+/)} ${it.value.lights}"
+            def lights = it.value.lights ? " ${it.value.lights}" : ''
+            def value = "${it.value.name.minus(~/ on \d+/)}${lights}"
             def key = app.id +"/"+ it.value.id
             scenemap["${key}"] = value
         }
@@ -330,7 +331,9 @@ def manualRefresh() {
 }
 
 def timedRefresh() {
-    runIn(5, manualRefresh)
+    // when triggering a scene the light light state take several
+    // seconds to change it's state. So we need to delay this.
+    runIn(10, doDeviceSync)
 }
 
 def uninstalled(){
@@ -350,6 +353,7 @@ def itemListHandler(hub, data = "") {
         def object = new groovy.json.JsonSlurper().parseText(data)
         object.each { k,v ->
             if (v instanceof Map) {
+                // hacky way to guess if it's a bulb or a scene
                 if (v.get("type"))
                     bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
                 else {
