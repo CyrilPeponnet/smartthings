@@ -33,11 +33,11 @@ def facePage() {
     return dynamicPage(name:"facePage", nextPage:"", refreshInterval:5) {
         section {
             for (face in 1..6)
-                input "${face}", type: "enum", title: "Face ${face} ${faceId==face ? ' (current)' : ''}", required: false, options: phrases
+                input "${face}", "enum", title: "Face ${face} ${faceId==face ? ' (current)' : ''}", required: false, options: phrases
         }
         section {
-            input "leave", type: "enum", title: "When leave home position", required: false, options: phrases
-            input "home", type: "enum", title: "When back in home position", required: false, options: phrases
+            input "leave", "enum", title: "When leave home position", required: false, options: phrases
+            input "home", "enum", title: "When back in home position", required: false, options: phrases
         }
     }
 }
