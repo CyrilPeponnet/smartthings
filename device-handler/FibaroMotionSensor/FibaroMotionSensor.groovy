@@ -87,7 +87,7 @@ metadata {
             state "inactive", label:'no motion', icon:"st.motion.motion.inactive", backgroundColor:"#ffffff"
         }
         valueTile("temperature", "device.temperature", inactiveLabel: false) {
-            state "temperature", label:'${currentValue}',
+            state "temperature", label:'${currentValue}°',
             backgroundColors:
             [
                 [value: 31, color: "#153591"],
@@ -100,14 +100,14 @@ metadata {
             ]
         }
         valueTile("illuminance", "device.illuminance", inactiveLabel: false) {
-            state "luminosity", label:'${currentValue} ${unit}', unit:"lux"
+            state "luminosity", label:'${currentValue} lux', unit:"lux"
         }
         valueTile("battery", "device.battery", inactiveLabel: false, decoration: "flat") {
             state "battery", label:'${currentValue}% battery', unit:""
         }
         standardTile("acceleration", "device.acceleration") {
-            state("vibration", label:'${currentValue}', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0")
-            state("still", label:'${currentValue}', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff")
+            state("active", label:'Vibration', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0")
+            state("inactive", label:'Still', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff")
         }
         standardTile("configure", "device.needUpdate", inactiveLabel: false) {
             state "NO" , label:'Synced', action:"configuration.configure", icon:"st.secondary.refresh-icon", backgroundColor:"#99CC33"
@@ -151,7 +151,7 @@ def generate_preferences(configuration_model)
 */
 def parse(String description)
 {
-    log.debug "==> New Zwave Event: ${description}"
+    log.debug "==> New Zwave Event: ${description}, Battery: ${state.lastBatteryReport}"
 
     def result = []
 
@@ -252,8 +252,8 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv2.SensorMultilevelR
         case 1:
             map.name = "temperature"
             def cmdScale = cmd.scale == 1 ? "F" : "C"
-            map.value = convertTemperatureIfNeeded(cmd.scaledSensorValue, cmdScale, cmd.precision)
-            map.unit  = getTemperatureScale()
+			map.value = Math.round(convertTemperatureIfNeeded(cmd.scaledSensorValue, cmdScale,  cmd.precision).toFloat()).toString()
+			map.unit  = getTemperatureScale()
             break;
         case 3:
             map.name = "illuminance"
@@ -482,14 +482,14 @@ def configuration_model()
 {
 '''
 <configuration>
-  <Value type="byte" index="1" label="Motion sensor\' sensitivity" min="0" max="255" value="10">
+  <Value type="byte" index="1" label="Motion sensor sensitivity" min="0" max="255" value="10">
     <Help>
 The lower the value is , the more sensitive the PIR sensor will be.
 Available settings: 8 - 255
 Default setting: 10
     </Help>
   </Value>
-  <Value type="byte" index="2" label="Motion sensor\'s blind time (insensitivity)" min="0" max="15" value="15">
+  <Value type="byte" index="2" label="Motion sensor blind time (insensitivity)" min="0" max="15" value="15">
     <Help>
 Period of time through which the PIR sensor is "blind" (insensitive) to motion.
 After this time period the PIR sensor will be again able to detect motion.
@@ -501,11 +501,11 @@ Formula to calculate the time: time [s] = 0.5 x (value + 1)
 Default setting: 15 (8 seconds)
     </Help>
   </Value>
-  <Value type="list" index="3" label="PIR sensor\'s pulse counter" min="0" max="3" value="1" size="1">
+  <Value type="list" index="3" label="PIR sensor pulse counter" min="0" max="3" value="1" size="1">
     <Help>
 Sets the number of moves required for the PIR sensor to report motion.
 The lower the value, the less sensitive the PIR sensor.
-It\'s not recommended to modify this parameter settings.
+It\'s not recommended to modify this parameter setting.
 Available settings: 0 - 3
 Formula to calculate the number of pulses: pulses = (value + 1)
 Default setting: 1 (2 pulses)
@@ -515,7 +515,7 @@ Default setting: 1 (2 pulses)
         <Item label="3 pulses" value="2" />
         <Item label="4 pulses" value="3" />
   </Value>
-  <Value type="list" index="4" label="PIR sensor\'s window time" min="0" max="3" value="2" size="1">
+  <Value type="list" index="4" label="PIR sensor window time" min="0" max="3" value="2" size="1">
     <Help>
 Period of time during which the number of moves set in parameter 3 must be detected in order for the PIR sensor to report motion.
 The higher the value, the more sensitive the PIR sensor.
@@ -533,7 +533,7 @@ Default setting: 2 (12 seconds)
 <Help>
 Motion alarm will be cancelled in the main controller and the associated devices after the period of time set in this parameter.
 Any motion detected during the cancellation delay time countdown will result in the countdown being restarted.
-In case of small values, below 10 seconds, the value of parameter 2 must be modified (PIRsensor\'s "Blind Time").
+In case of small values, below 10 seconds, the value of parameter 2 must be modified (PIR sensor blind time).
 Available settings: 1 - 65535
 Default setting: 30 (30 seconds)
 </Help>
@@ -753,4 +753,3 @@ Default setting: 1 (on)
 </configuration>
 '''
 }
-
