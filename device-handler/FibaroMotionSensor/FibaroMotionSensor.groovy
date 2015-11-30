@@ -106,8 +106,11 @@ metadata {
             state "battery", label:'${currentValue}% battery', unit:""
         }
         standardTile("acceleration", "device.acceleration") {
-            state("active", label:'Vibration', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0")
-            state("inactive", label:'Still', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff")
+            state("vibration", label:'${currentValue}', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0")
+            state("still", label:'${currentValue}', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff")
+            state("moving", label:'vibration', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0")
+            state("active", label:'vibration', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0")
+            state("inactive", label:'still', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff")
         }
         standardTile("configure", "device.needUpdate", inactiveLabel: false) {
             state "NO" , label:'Synced', action:"configuration.configure", icon:"st.secondary.refresh-icon", backgroundColor:"#99CC33"
