@@ -254,21 +254,38 @@ Map bulbsDiscovered() {
 Map scenesDiscovered() {
     def scenes =  getHueScenes()
     def scenemap = [:]
+    def sceneTime = [:]
+    // first pass to keep only the latest items
     if (scenes instanceof java.util.Map) {
         scenes.each {
-            def lights = it.value.lights ? " ${it.value.lights}" : ''
-            def value = "${it.value.name.minus(~/ on \d+/)}${lights}"
-            def key = app.id +"/"+ it.value.id
-            scenemap["${key}"] = value
+            if (sceneTime."${it.value.name}")
+            {
+                if (sceneTime."${it.value.name}".lastupdated && is_latest(it.value.lastupdated, sceneTime."${it.value.name}".lastupdated))
+                {
+                    sceneTime["${it.value.name}"] = ['lastupdated': it.value.lastupdated, 'id': it.value.id]
+                }
+            } else {
+                sceneTime["${it.value.name}"] = ['lastupdated': it.value.lastupdated, 'id': it.value.id]
+            }
         }
-    } else { //backwards compatable
         scenes.each {
-            def value = "${it.name}"
-            def key = app.id +"/"+ it.id
-            scenemap["${key}"] = value
+            if (it.value.id == sceneTime."${it.value.name}".id)
+            {
+                def lights = it.value.lights ? " ${it.value.lights}" : ''
+                def value = "${it.value.name.minus(~/ on \d+/)}${lights}"
+                def key = app.id +"/"+ it.value.id
+                scenemap["${key}"] = value
+            }
         }
     }
+
     return scenemap
+}
+
+def is_latest(date1, date2) {
+    def d1 = new Date().parse("yyyy-MM-dd'T'HH:mm:ss", date1)
+    def d2 = new Date().parse("yyyy-MM-dd'T'HH:mm:ss", date2)
+    if ( d1 > d2) { true } else { false }
 }
 
 def bulbListData(evt) {
@@ -357,10 +374,11 @@ def itemListHandler(hub, data = "") {
                 if (v.get("type"))
                     bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
                 else {
-                    if (v.active) {
+                    // keep active for backward compatiblity (deprecated since 1.11)
+                    if (v.active || v.containsKey("lastupdated")) {
                         def lights = []
                         v.lights.each { light -> lights << state.bulbs?."${light}".name}
-                        scenes[k] = [id: k, name: v.name, hub:hub, lights:lights]
+                        scenes[k] = [id: k, name: v.name, hub:hub, lights:lights, lastupdated:v?.lastupdated]
                     }
                 }
             }
@@ -388,14 +406,14 @@ def addBulbs() {
             if (bulbs instanceof java.util.Map) {
                 newHueBulb = bulbs.find { (app.id + "/" + it.value.id) == dni }
                 if (!newHueBulb) {
-                    log.debug "Looking for ${dni} in bulbs list but not match found ${bulbs}"
-                    continue
-                }
-                // If we have dimmable light use the lux device otherwise use standard hue bulb device
-                if (newHueBulb?.value?.type?.equalsIgnoreCase("Dimmable light")) {
-                    d = addChildDevice("smartthings", "Hue Lux Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
+                    // If we have dimmable light use the lux device otherwise use standard hue bulb device
+                    if (newHueBulb?.value?.type?.equalsIgnoreCase("Dimmable light")) {
+                        d = addChildDevice("smartthings", "Hue Lux Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
+                    } else {
+                        d = addChildDevice("smartthings", "Hue Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
+                    }
                 } else {
-                    d = addChildDevice("smartthings", "Hue Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
+                    log.debug "Looking for ${dni} in bulbs list but not match found ${bulbs}"
                 }
             } else {
                 //backwards compatable
