@@ -333,7 +333,7 @@ def manualRefresh() {
 def timedRefresh() {
     // when triggering a scene the light light state take several
     // seconds to change it's state. So we need to delay this.
-    runIn(10, doDeviceSync)
+    runIn(10, manualRefresh)
 }
 
 def uninstalled(){
@@ -387,6 +387,11 @@ def addBulbs() {
             def newHueBulb
             if (bulbs instanceof java.util.Map) {
                 newHueBulb = bulbs.find { (app.id + "/" + it.value.id) == dni }
+                if (!newHueBulb) {
+                    log.debug "Looking for ${dni} in bulbs list but not match found ${bulbs}"
+                    continue
+                }
+                // If we have dimmable light use the lux device otherwise use standard hue bulb device
                 if (newHueBulb?.value?.type?.equalsIgnoreCase("Dimmable light")) {
                     d = addChildDevice("smartthings", "Hue Lux Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
                 } else {

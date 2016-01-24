@@ -63,7 +63,7 @@ def parse(description) {
 
     def map = description
     if (description instanceof String)  {
-        log.debug "Hue Bulb stringToMap - ${map}"
+        log.debug "Hue Lux Bulb stringToMap - ${map}"
         map = stringToMap(description)
     }
 
