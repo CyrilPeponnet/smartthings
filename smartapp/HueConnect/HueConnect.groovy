@@ -23,7 +23,8 @@ definition(
     description: "Allows you to connect your Philips Hue lights with SmartThings and control them from your Things area or Dashboard in the SmartThings Mobile app. Adjust colors by going to the Thing detail screen for your Hue lights (tap the gear on Hue tiles).\n\nPlease update your Hue Bridge first, outside of the SmartThings app, using the Philips Hue app.",
     category: "SmartThings Labs",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Partner/hue.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Partner/hue@2x.png"
+    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Partner/hue@2x.png",
+    singleInstance: true
 )
 
 preferences {
@@ -405,24 +406,19 @@ def addBulbs() {
             def newHueBulb
             if (bulbs instanceof java.util.Map) {
                 newHueBulb = bulbs.find { (app.id + "/" + it.value.id) == dni }
-                if (!newHueBulb) {
+                if (newHueBulb) {
                     // If we have dimmable light use the lux device otherwise use standard hue bulb device
                     if (newHueBulb?.value?.type?.equalsIgnoreCase("Dimmable light")) {
                         d = addChildDevice("smartthings", "Hue Lux Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
                     } else {
                         d = addChildDevice("smartthings", "Hue Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
                     }
+                    log.debug "created ${d.displayName} with id $dni"
+                    d.refresh()
                 } else {
                     log.debug "Looking for ${dni} in bulbs list but not match found ${bulbs}"
                 }
-            } else {
-                //backwards compatable
-                newHueBulb = bulbs.find { (app.id + "/" + it.id) == dni }
-                d = addChildDevice("smartthings", "Hue Bulb", dni, newHueBulb?.hub, ["label":newHueBulb?.name])
             }
-
-            log.debug "created ${d.displayName} with id $dni"
-            d.refresh()
         } else {
             log.debug "found ${d.displayName} with id $dni already exists, type: '$d.typeName'"
             if (bulbs instanceof java.util.Map) {
