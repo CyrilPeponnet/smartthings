@@ -439,20 +439,16 @@ def addScenes() {
             def newHueScene
             if (scenes instanceof java.util.Map) {
                 newHueScene = scenes.find { (app.id + "/" + it.value.id) == dni }
-                d = addChildDevice("smartthings", "Hue Scene", dni, newHueScene?.value.hub, ["name":newHueScene?.value.name.minus(~/ on \d+/)])
-                def childDevice = getChildDevice(d.deviceNetworkId)
-                childDevice.sendEvent(name: "lights", value: newHueScene?.value.lights)
-
-            } else {
-                //backwards compatable
-                newHueScene = bulbs.find { (app.id + "/" + it.id) == dni }
-                d = addChildDevice("smartthings", "Hue Scene", dni, newHueScene?.hub, ["name":newHueScene?.name.minus(~/ on \d+/)])
-                def childDevice = getChildDevice(d.deviceNetworkId)
-                childDevice.sendEvent(name: "lights", value: newHueScene?.lights)
+                if (newHueScene) {
+                    d = addChildDevice("smartthings", "Hue Scene", dni, newHueScene?.value.hub, ["name":newHueScene?.value.name.minus(~/ on \d+/)])
+                    def childDevice = getChildDevice(d.deviceNetworkId)
+                    childDevice.sendEvent(name: "lights", value: newHueScene?.value.lights)
+                    log.debug "created ${d.displayName} with id $dni"
+                    d.refresh()
+                } else {
+                    log.debug "Looking for ${dni} in scene list but not match found ${scenes}"
+                }
             }
-
-            log.debug "created ${d.displayName} with id $dni"
-            d.refresh()
         } else {
             log.debug "found ${d.displayName} with id $dni already exists, type: '$d.typeName'"
             if (scenes instanceof java.util.Map) {
