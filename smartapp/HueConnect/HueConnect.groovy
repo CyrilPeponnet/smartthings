@@ -270,7 +270,7 @@ Map scenesDiscovered() {
             }
         }
         scenes.each {
-            if (it.value.id == sceneTime."${it.value.name}".id)
+            if (it.value.id == sceneTime?."${it.value.name}"?.id)
             {
                 def lights = it.value.lights ? " ${it.value.lights}" : ''
                 def value = "${it.value.name.minus(~/ on \d+/)}${lights}"
@@ -374,13 +374,10 @@ def itemListHandler(hub, data = "") {
                 // hacky way to guess if it's a bulb or a scene
                 if (v.get("type"))
                     bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
-                else {
-                    // keep active for backward compatiblity (deprecated since 1.11)
-                    if (v.active || v.containsKey("lastupdated")) {
-                        def lights = []
-                        v.lights.each { light -> lights << state.bulbs?."${light}".name}
-                        scenes[k] = [id: k, name: v.name, hub:hub, lights:lights, lastupdated:v?.lastupdated]
-                    }
+                else if (v.get('lastupdated')) {
+                    def lights = []
+                    v.lights.each { light -> lights << state.bulbs?."${light}".name}
+                    scenes[k] = [id: k, name: v.name, hub:hub, lights:lights, lastupdated:v?.lastupdated]
                 }
             }
         }
