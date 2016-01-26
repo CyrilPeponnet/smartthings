@@ -21,21 +21,8 @@ Remove all your existing bulbs / and HueConnect SmartApp.
 
 Then create a new smartapp in IDE from code and also add each devices type you can find under HueDevices folder.
 
-## Important notes
+**Note:**
+This application will not list the stock scenes (who want then after all).
 
-You may found the list of scene a little bit of messy. This is a Hue API limitation.
-
-<img src="https://dl.dropboxusercontent.com/u/2663552/Github/Smartthings/HueConnect/IMG_0775.jpg" width="300px">
-
-From API documentation:
-
-    Scenes are only "cached" and can be recycled when not enough resources are available to create a new scene.
-    Additionally, bridge scenes should not be confused with the preset scenes stored in the Android and iOS Hue apps. In the apps these scenes are stored internally. Once activated they may then appear as a bridge scene.
-
-It means that you can have 200 scenes per bridges and they are recycled. Each time you will create / change a scene using the Hue Application, this will create a new scene.
-
-The trick here, to quickly find the good scene you want to use, is to change the name (so you'll be sure to retrive it through the list of scenes)
-
-## Known issues
-
-From time to time when pushing a scene, the state of the bulbs involved is not properly refreshed (it will be in the next 5 minutes).
+**TIPS:**
+Ob the hue application when you create a new scene, trigger it once, and also trigger the off button on the left when you click on the scene (where you can also change the luminosity). Then you can add it to smarthtings using the smartApp. This will allow you to turn off the scene from smartthings as well :) (When you manually trigger the Off button on the Hue application this will generate a hidden scene to turn of the current scene). This can be done after you added the scene as well.
