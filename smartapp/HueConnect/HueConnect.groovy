@@ -321,8 +321,8 @@ def installed() {
 
 def updated() {
     log.trace "Updated with settings: ${settings}"
-    unschedule()
     unsubscribe()
+    unschedule()
     initialize()
 }
 
@@ -725,9 +725,7 @@ def pushScene(childDevice, group=0, offStateId=null) {
 
 def on(childDevice, transition_deprecated = 0) {
     log.debug "Executing 'on'"
-    def percent = childDevice.device?.currentValue("level") as Integer
-    def level = Math.min(Math.round(percent * 255 / 100), 255)
-    put("lights/${getId(childDevice)}/state", [bri: level, on: true])
+    put("lights/${getId(childDevice)}/state", [on: true])
     return "level: $percent"
 }
 
@@ -739,7 +737,7 @@ def off(childDevice, transition_deprecated = 0) {
 
 def setLevel(childDevice, percent) {
     log.debug "Executing 'setLevel'"
-    def level = Math.min(Math.round(percent * 255 / 100), 255)
+    def level = (percent == 1) ? 1 : Math.min(Math.round(percent * 255 / 100), 255)
     put("lights/${getId(childDevice)}/state", [bri: level, on: percent > 0])
 }
 
@@ -755,7 +753,7 @@ def setHue(childDevice, percent) {
     put("lights/${getId(childDevice)}/state", [hue: level])
 }
 
-def setColor(childDevice, huesettings, alert_deprecated = "", transition_deprecated = 0) {
+def setColor(childDevice, huesettings) {
     log.debug "Executing 'setColor($huesettings)'"
     def hue = Math.min(Math.round(huesettings.hue * 65535 / 100), 65535)
     def sat = Math.min(Math.round(huesettings.saturation * 255 / 100), 255)
@@ -764,7 +762,7 @@ def setColor(childDevice, huesettings, alert_deprecated = "", transition_depreca
 
     def value = [sat: sat, hue: hue, alert: alert, transitiontime: transition]
     if (huesettings.level != null) {
-        value.bri = Math.min(Math.round(huesettings.level * 255 / 100), 255)
+        value.bri = (huesettings.level == 1) ? 1 : Math.min(Math.round(huesettings.level * 255 / 100), 255)
         value.on = value.bri > 0
     }
 
