@@ -270,8 +270,9 @@ Map scenesDiscovered() {
             }
         }
         scenes.each {
-            if (it.value.id == sceneTime?."${it.value.name}"?.id)
+            if (it.value.id == sceneTime?."${it.value.name}"?.id && it.value.name ==~ /.* on \d+$/)
             {
+                log.trace "Adding ${it.value.name} to scene list"
                 def lights = it.value.lights ? " ${it.value.lights}" : ''
                 def value = "${it.value.name.minus(~/ on \d+/)}${lights}"
                 def key = app.id +"/"+ it.value.id
@@ -329,7 +330,6 @@ def initialize() {
     log.debug "Initializing"
     unsubscribe(bridge)
     state.inItemDiscovery = false
-    state.inSceneDiscovery = false
     state.bridgeRefreshCount = 0
     state.bulbRefreshCount = 0
     if (selectedHue) {
@@ -432,25 +432,30 @@ def addScenes() {
     def scenes = getHueScenes()
     selectedScenes?.each { dni ->
         def d = getChildDevice(dni)
-        if(!d) {
-            def newHueScene
-            if (scenes instanceof java.util.Map) {
-                newHueScene = scenes.find { (app.id + "/" + it.value.id) == dni }
-                if (newHueScene) {
-                    d = addChildDevice("smartthings", "Hue Scene", dni, newHueScene?.value.hub, ["name":newHueScene?.value.name.minus(~/ on \d+/)])
-                    def childDevice = getChildDevice(d.deviceNetworkId)
-                    childDevice.sendEvent(name: "lights", value: newHueScene?.value.lights)
+
+        if (scenes instanceof java.util.Map) {
+            def newHueScene = scenes.find { (app.id + "/" + it.value.id) == dni }
+            if (newHueScene) {
+                def name = newHueScene?.value.name.minus(~/ on \d+/)
+                def group = newHueScene?.value.name.split()[-1]
+                if (!d)
+                {
+                    d = addChildDevice("smartthings", "Hue Scene", dni, newHueScene?.value.hub, ["name":name])
                     log.debug "created ${d.displayName} with id $dni"
-                    d.refresh()
                 } else {
-                    log.debug "Looking for ${dni} in scene list but not match found ${scenes}"
+                    log.debug "found ${d.displayName} with id $dni already exists, type: '$d.typeName'"
+                    d.setDeviceType("Hue Scene")
                 }
-            }
-        } else {
-            log.debug "found ${d.displayName} with id $dni already exists, type: '$d.typeName'"
-            if (scenes instanceof java.util.Map) {
-                def newHueScene = scenes.find { (app.id + "/" + it.value.id) == dni }
-                d.setDeviceType("Hue Scene")
+                def childDevice = getChildDevice(d.deviceNetworkId)
+                childDevice.sendEvent(name: "lights", value: newHueScene?.value.lights)
+                childDevice.sendEvent(name: "group", value: group)
+                def offState = scenes.find{ it.value.name == "${name} off ${group}" }
+                if (offState)
+                    childDevice.sendEvent(name: 'offStateId', value: offState.value.id)
+                log.debug "created ${d.displayName} with id $dni"
+                d.refresh()
+            } else {
+                log.debug "Looking for ${dni} in scene list but not match found ${scenes}"
             }
         }
     }
@@ -711,10 +716,10 @@ def parse(childDevice, description) {
     }
 }
 
-def pushScene(childDevice, transition_deprecated =0 ) {
+def pushScene(childDevice, group=0, offStateId=null) {
     // We are using the default group 0 which contain all the lights
     // See API
-    put("groups/0/action", [scene: getId(childDevice)])
+    put("groups/${group}/action", [scene: offStateId ? offStateId: getId(childDevice)])
     return "Scene pushed"
 }
 

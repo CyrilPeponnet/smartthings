@@ -13,6 +13,8 @@ metadata {
         capability "Sensor"
 
         attribute "lights", "string"
+        attribute "group", "string"
+        attribute "offStateId", "string"
 
     }
 
@@ -29,19 +31,28 @@ metadata {
                 attributeState "default", label:'${currentValue}'
             }
         }
+        standardTile("off", "momentary", inactiveLabel: false, height: 2, width: 2, decoration: "flat") {
+            state "off", label:"", action:"switch.off", icon:"st.secondary.off"
+        }
+
         main "switch"
-        details "switch"
+        details "switch", "off"
     }
 }
 
 def parse(String description) {
 }
 
-def on() {
-    push()
-}
-
 def push() {
     parent.pushScene(this)
     sendEvent(name: "momentary", value: "pushed", isStateChange: true)
+}
+
+def on() {
+    parent.pushScene(this)
+    sendEvent(name: "switch", value: "on", isStateChange: true)
+}
+
+def off() {
+    sendEvent(name: "switch", value: "off", isStateChange: true)
 }
