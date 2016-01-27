@@ -23,7 +23,7 @@ metadata {
     }
 
     tiles (scale: 2){
-        multiAttributeTile(name:"switch", type: "momentary", width: 6, height: 4, canChangeIcon: true){
+        multiAttributeTile(name:"push", type: "momentary", width: 6, height: 4, canChangeIcon: true){
             tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
                 attributeState "on",  label:'Push', action:"momentary.push", icon:"st.lights.philips.hue-multi", backgroundColor:"#07A4D2"
             }
@@ -31,12 +31,12 @@ metadata {
                 attributeState "default", label:'${currentValue}'
             }
         }
-        standardTile("off", "momentary", inactiveLabel: false, height: 2, width: 2, decoration: "flat") {
+        standardTile("switch", "device.switch", inactiveLabel: false, height: 2, width: 2, decoration: "flat") {
             state "off", label:"", action:"switch.off", icon:"st.secondary.off"
         }
 
-        main "switch"
-        details "switch", "off"
+        main "push"
+        details "push", "switch"
     }
 }
 
@@ -44,15 +44,16 @@ def parse(String description) {
 }
 
 def push() {
-    parent.pushScene(this)
+    parent.pushScene(this, device.currentValue("group")?: 0)
     sendEvent(name: "momentary", value: "pushed", isStateChange: true)
 }
 
 def on() {
-    parent.pushScene(this)
+    parent.pushScene(this, device.currentValue("group")?: 0)
     sendEvent(name: "switch", value: "on", isStateChange: true)
 }
 
 def off() {
+    parent.pushScene(this, device.currentValue("group")?: 0, device.currentValue("offStateId")?: null)
     sendEvent(name: "switch", value: "off", isStateChange: true)
 }
