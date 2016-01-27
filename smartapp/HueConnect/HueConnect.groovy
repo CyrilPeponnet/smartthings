@@ -432,7 +432,7 @@ def addScenes() {
     def scenes = getHueScenes()
     selectedScenes?.each { dni ->
         def d = getChildDevice(dni)
-
+        def latest_offStates = [:]
         if (scenes instanceof java.util.Map) {
             def newHueScene = scenes.find { (app.id + "/" + it.value.id) == dni }
             if (newHueScene) {
@@ -449,9 +449,20 @@ def addScenes() {
                 def childDevice = getChildDevice(d.deviceNetworkId)
                 childDevice.sendEvent(name: "lights", value: newHueScene?.value.lights)
                 childDevice.sendEvent(name: "group", value: group)
-                def offState = scenes.find{ it.value.name == "${name} off ${group}" }
-                if (offState)
-                    childDevice.sendEvent(name: 'offStateId', value: offState.value.id)
+                def offStates = scenes.findAll{ it.value.name == "${name} off ${group}" }
+                if (offStates)
+                    offStates.each {
+                        if (latest_offStates."${it.value.name}")
+                        {
+                            if (latest_offStates."${it.value.name}".lastupdated && is_latest(it.value.lastupdated, latest_offStates."${it.value.name}".lastupdated))
+                            {
+                                latest_offStates["${it.value.name}"] = ['lastupdated': it.value.lastupdated, 'id': it.value.id]
+                            }
+                        } else {
+                            latest_offStates["${it.value.name}"] = ['lastupdated': it.value.lastupdated, 'id': it.value.id]
+                        }
+                    }
+                    childDevice.sendEvent(name: 'offStateId', value: latest_offStates."${name} off ${group}".id)
                 log.debug "created ${d.displayName} with id $dni"
                 d.refresh()
             } else {
