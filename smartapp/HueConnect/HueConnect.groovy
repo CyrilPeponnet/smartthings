@@ -259,18 +259,19 @@ Map scenesDiscovered() {
     // first pass to keep only the latest items
     if (scenes instanceof java.util.Map) {
         scenes.each {
-            if (sceneTime."${it.value.name}")
+            def shortname = it.value.name.minus(~/ on \d+/)
+            if (sceneTime."${shortname}")
             {
-                if (sceneTime."${it.value.name}".lastupdated && is_latest(it.value.lastupdated, sceneTime."${it.value.name}".lastupdated))
+                if (sceneTime."${shortname}".lastupdated && is_latest(it.value.lastupdated, sceneTime."${shortname}".lastupdated))
                 {
-                    sceneTime["${it.value.name}"] = ['lastupdated': it.value.lastupdated, 'id': it.value.id]
+                    sceneTime["${shortname}"] = ['lastupdated': it.value.lastupdated, 'id': it.value.id]
                 }
             } else {
-                sceneTime["${it.value.name}"] = ['lastupdated': it.value.lastupdated, 'id': it.value.id]
+                sceneTime["${shortname}"] = ['lastupdated': it.value.lastupdated, 'id': it.value.id]
             }
         }
         scenes.each {
-            if (it.value.id == sceneTime?."${it.value.name}"?.id && it.value.name ==~ /.* on \d+$/)
+            if (it.value.id == sceneTime?."${it.value.name.minus(~/ on \d+/)}"?.id && it.value.name ==~ /.* on \d+$/)
             {
                 log.trace "Adding ${it.value.name} to scene list"
                 def lights = it.value.lights ? " ${it.value.lights}" : ''
