@@ -462,7 +462,7 @@ def addScenes() {
                             latest_offStates["${it.value.name}"] = ['lastupdated': it.value.lastupdated, 'id': it.value.id]
                         }
                     }
-                    childDevice.sendEvent(name: 'offStateId', value: latest_offStates."${name} off ${group}".id)
+                    childDevice.sendEvent(name: 'offStateId', value: latest_offStates."${name} off ${group}"?.id)
                 log.debug "created ${d.displayName} with id $dni"
                 d.refresh()
             } else {
