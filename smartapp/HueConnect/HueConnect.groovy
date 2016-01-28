@@ -437,7 +437,8 @@ def addScenes() {
             def newHueScene = scenes.find { (app.id + "/" + it.value.id) == dni }
             if (newHueScene) {
                 def name = newHueScene?.value.name.minus(~/ on \d+/)
-                def group = newHueScene?.value.name.split()[-1]
+                // not sure about the group... set it to 0 for now
+                def group = "0"
                 if (!d)
                 {
                     d = addChildDevice("smartthings", "Hue Scene", dni, newHueScene?.value.hub, ["name":name])
