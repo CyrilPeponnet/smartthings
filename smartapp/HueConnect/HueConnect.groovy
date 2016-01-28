@@ -438,7 +438,6 @@ def addScenes() {
             def newHueScene = scenes.find { (app.id + "/" + it.value.id) == dni }
             if (newHueScene) {
                 def name = newHueScene?.value.name.minus(~/ on \d+/)
-                def id = newHueScene?.value.name.split()[-1]
                 // not sure about the group... set it to 0 for now
                 def group = "0"
                 if (!d)
@@ -452,20 +451,20 @@ def addScenes() {
                 def childDevice = getChildDevice(d.deviceNetworkId)
                 childDevice.sendEvent(name: "lights", value: newHueScene?.value.lights)
                 childDevice.sendEvent(name: "group", value: group)
-                def offStates = scenes.findAll{ it.value.name == "${name} off ${id}" }
+                def offStates = scenes.findAll{ it.value.name ==~ /${name} off \d+/ }
                 if (offStates)
                     offStates.each {
-                        if (latest_offStates."${it.value.name}")
+                        if (latest_offStates."${name}")
                         {
-                            if (latest_offStates."${it.value.name}".lastupdated && is_latest(it.value.lastupdated, latest_offStates."${it.value.name}".lastupdated))
+                            if (latest_offStates."${name}".lastupdated && is_latest(it.value.lastupdated, latest_offStates."${name}".lastupdated))
                             {
-                                latest_offStates["${it.value.name}"] = ['lastupdated': it.value.lastupdated, 'id': it.value.id]
+                                latest_offStates["${name}"] = ['lastupdated': it.value.lastupdated, 'id': it.value.id]
                             }
                         } else {
-                            latest_offStates["${it.value.name}"] = ['lastupdated': it.value.lastupdated, 'id': it.value.id]
+                            latest_offStates["${name}"] = ['lastupdated': it.value.lastupdated, 'id': it.value.id]
                         }
                     }
-                    childDevice.sendEvent(name: 'offStateId', value: latest_offStates."${name} off ${id}"?.id)
+                    childDevice.sendEvent(name: 'offStateId', value: latest_offStates."${name}"?.id)
                 log.debug "created ${d.displayName} with id $dni"
                 d.refresh()
             } else {
