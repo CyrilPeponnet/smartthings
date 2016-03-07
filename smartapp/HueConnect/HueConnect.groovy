@@ -137,6 +137,7 @@ def itemDiscovery() {
     if (selectedHue) {
         bridge = getChildDevice(selectedHue)
         subscribe(bridge, "bulbList", bulbListData)
+        subscribe(bridge, "groupList", groupListData)
         subscribe(bridge, "sceneList", sceneListData)
     }
     state.bridgeRefreshCount = 0
@@ -150,15 +151,22 @@ def itemDiscovery() {
     if (scenes_numFound == 0)
         app.updateSetting("selectedScenes", "")
 
+    def groupsoptions = groupsDiscovered() ?: [:]
+    def groups_numFound = groupsoptions.size() ?: 0
+    if (groups_numFound == 0)
+        app.updateSetting("selectedGroups", "")
+
     if((bulbRefreshCount % 3) == 0) {
         discoverHueBulbs()
         discoverHueScenes()
+        discoverHueGroups()
     }
 
     return dynamicPage(name:"itemDiscovery", title:"Bulb and scenes Discovery Started!", nextPage:"", refreshInterval:refreshInterval, install:true, uninstall: true) {
         section("Please wait while we discover your Hue Bulbs and Scenes. Discovery can take several minutes, so sit back and relax! Select your device and scene below once discovered.") {
             input "selectedBulbs", "enum", required:false, title:"Select Hue Bulbs (${bulbs_numFound} found)", multiple:true, options:bulboptions.sort {it.value}
             input "selectedScenes", "enum", required:false, title:"Select Hue Scenes (${scenes_numFound} found)", multiple:true, options:scenesoptions.sort {it.value}
+            input "selectedGroups", "enum", required:false, title:"Select Hue Groups (${groups_numFound} found)", multiple:true, options:groupsoptions.sort {it.value}
         }
         section {
             def title = getBridgeIP() ? "Hue bridge (${getBridgeIP()})" : "Find bridges"
@@ -204,6 +212,17 @@ private discoverHueScenes() {
         ]], "${selectedHue}"))
 }
 
+private discoverHueGroups() {
+	def host = getBridgeIP()
+    log.debug("Discovering New Groups")
+	sendHubCommand(new physicalgraph.device.HubAction([
+		method: "GET",
+		path: "/api/${state.username}/groups",
+		headers: [
+			HOST: host
+		]], "${selectedHue}"))
+}
+
 private verifyHueBridge(String deviceNetworkId, String host) {
     sendHubCommand(new physicalgraph.device.HubAction([
         method: "GET",
@@ -234,22 +253,47 @@ Map bridgesDiscovered() {
 }
 
 Map bulbsDiscovered() {
+	log.debug("Entered BulbsDiscovered")
     def bulbs =  getHueBulbs()
     def bulbmap = [:]
     if (bulbs instanceof java.util.Map) {
         bulbs.each {
+        	log.trace "Adding ${it.value.name} to bulb list"
             def value = "${it.value.name}"
             def key = app.id +"/"+ it.value.id
             bulbmap["${key}"] = value
         }
     } else { //backwards compatable
         bulbs.each {
+        	log.trace "Adding ${it.value.name} to bulb list"
             def value = "${it.name}"
             def key = app.id +"/"+ it.id
             bulbmap["${key}"] = value
         }
     }
     return bulbmap
+}
+
+Map groupsDiscovered() {
+	log.debug("Entered BulbsDiscovered")
+    def groups =  getHueGroups()
+    def groupmap = [:]
+    if (groups instanceof java.util.Map) {
+        groups.each {
+        	log.trace "Adding ${it.value.name} to group list"
+            def value = "${it.value.name}"
+            def key = app.id +"/GROUP"+ it.value.id
+            groupmap["${key}"] = value
+        }
+    } else { //backwards compatable
+        groups.each {
+        	log.trace "Adding ${it.value.name} to group list"
+            def value = "${it.name}"
+            def key = app.id +"/GROUP"+ it.id
+            groupmap["${key}"] = value
+        }
+    }
+    return groupmap
 }
 
 Map scenesDiscovered() {
@@ -299,8 +343,16 @@ def sceneListData(evt) {
     state.scenes = evt.jsonData
 }
 
+def groupListData(evt) {
+    state.groups = evt.jsonData
+}
+
 Map getHueBulbs() {
     state.bulbs = state.bulbs ?: [:]
+}
+
+Map getHueGroups() {
+	state.groups = state.groups ?: [:]
 }
 
 Map getHueScenes() {
@@ -337,6 +389,7 @@ def initialize() {
         addBridge()
         addBulbs()
         addScenes()
+        addGroups()
         doDeviceSync()
         runEvery5Minutes("doDeviceSync")
     }
@@ -365,6 +418,7 @@ def uninstalled(){
 def itemListHandler(hub, data = "") {
     def msg = "Item list not processed. Only while in settings menu."
     def scenes = [:]
+    def groups = [:]
     def bulbs = [:]
     if (state.inItemDiscovery) {
         log.trace "Adding items to state..."
@@ -373,12 +427,19 @@ def itemListHandler(hub, data = "") {
         object.each { k,v ->
             if (v instanceof Map) {
                 // hacky way to guess if it's a bulb or a scene
-                if (v.get("type"))
+                if(v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light" ) {
+                	log.debug("Its a bulb")
                     bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
-                else if (v.get('lastupdated')) {
-                    def lights = []
-                    v.lights.each { light -> lights << state.bulbs?."${light}".name}
-                    scenes[k] = [id: k, name: v.name, hub:hub, lights:lights, lastupdated:v?.lastupdated]
+                } else if (v.type == "LightGroup" || v.type == "Room") {
+                	log.debug("Its a group")
+                    //def lights = []
+                	//v.lights.each { light -> lights << state.bulbs?."${light}".name}
+                    groups[k] = [id: k, name: v.name, type: v.type, hub:hub]
+                }else if (v.get('lastupdated')) {
+                	log.debug("Its a scene")
+                   //def lights = []
+                   // v.lights.each { light -> lights << state.bulbs?."${light}".name}
+                    scenes[k] = [id: k, name: v.name, hub:hub, lastupdated:v?.lastupdated]  
                 }
             }
         }
@@ -386,6 +447,10 @@ def itemListHandler(hub, data = "") {
     def bridge = null
     if (selectedHue)
         bridge = getChildDevice(selectedHue)
+    if (groups.size() > 0) {
+        bridge.sendEvent(name: "groupList", value: hub, data: groups, isStateChange: true, displayed: false)
+        return "${groups.size()} groups found. ${groups}"
+    }
     if (scenes.size() > 0) {
         bridge.sendEvent(name: "sceneList", value: hub, data: scenes, isStateChange: true, displayed: false)
         return "${scenes.size()} scenes found. ${scenes}"
@@ -474,6 +539,32 @@ def addScenes() {
     }
 }
 
+def addGroups() {
+	def groups = getHueGroups()
+    log.debug "Entered addGroups"
+	selectedGroups?.each { dni ->
+		def d = getChildDevice(dni)
+		if(!d) 
+		{
+			def newHueGroup
+			if (groups instanceof java.util.Map) 
+			{
+            	log.debug "Adding a New Hue Group"
+				newHueGroup = groups.find { (app.id + "/GROUP" + it.value.id) == dni }
+				d = addChildDevice("smartthings", "Hue Group", dni, newHueGroup?.value.hub, ["label":newHueGroup?.value.name, "groupID":newHueGroup?.value.id])
+			} 
+
+			log.debug "created ${d.displayName} with id $dni"
+			d.refresh()
+		} 
+		else 
+		{
+			log.debug "found ${d.displayName} with id $dni already exists, type: '$d.typeName'"
+		}
+	}
+}
+
+
 def addBridge() {
     def vbridges = getVerifiedHueBridges()
     def vbridge = vbridges.find {"${it.value.mac}" == selectedHue}
@@ -526,6 +617,7 @@ def locationHandler(evt) {
 
     def hub = evt?.hubId
     def parsedEvent = parseLanMessage(description)
+    //def parsedEvent = parseEventMessage(description)
     parsedEvent << ["hub":hub]
 
     if (parsedEvent?.ssdpTerm?.contains("urn:schemas-upnp-org:device:basic:1")) {
@@ -609,12 +701,16 @@ def locationHandler(evt) {
                 if (!body?.state?.on) { //check if first time poll made it here by mistake
                     def bulbs = getHueBulbs()
                     def scenes = getHueScenes()
-                    log.debug "Adding bulbs and scenes to state!"
+                    def groups = getHueGroups()
+                    log.debug "Adding bulbs, groups & scenes to state!"
                     body.each { k,v ->
-                        if ( v.get("type") )
+                        if (v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light" ) {
                             bulbs[k] = [id: k, name: v.name, type: v.type, hub:parsedEvent.hub]
-                        else
+                        } else if (v.type == "LightGroup" || v.type == "Room") {
+                        	groups[k] = [id: k, name: v.name, type: v.type, hub:parsedEvent.hub]
+                        } else {
                             scenes[k] = [id: k, name: v.name, hub:parsedEvent.hub]
+                        }
 
                     }
                 }
@@ -628,6 +724,7 @@ def locationHandler(evt) {
 def doDeviceSync(){
     log.trace "Doing Hue Device Sync!"
     convertBulbListToMap()
+    convertGroupListToMap()
     poll()
     try {
         subscribe(location, null, locationHandler, [filterEvents:false])
@@ -643,9 +740,11 @@ def doDeviceSync(){
 
 def parse(childDevice, description) {
     def parsedEvent = parseLanMessage(description)
+    //def parsedEvent = parseEventMessage(description)
     if (parsedEvent.headers && parsedEvent.body) {
         def headerString = parsedEvent.headers.toString()
         def bodyString = parsedEvent.body.toString()
+        log.debug ("Response Body: " + bodyString)
         if (headerString?.contains("json")) {
             def body
             try {
@@ -673,6 +772,26 @@ def parse(childDevice, description) {
                             }
                         }
                     }
+                    def g = bulbs.find{it.deviceNetworkId == "${app.id}/GROUP${bulb.key}"}    
+               	 	if (g) {
+                		log.trace "Matched group in Response"
+	                	if(bulb.value.type == "LightGroup" || bulb.value.type == "Room")
+                			{
+                				log.trace "Reading Poll for Groups"
+                       			sendEvent(g.deviceNetworkId, [name: "switch", value: bulb.value?.action?.on ? "on" : "off"])
+                        		sendEvent(g.deviceNetworkId, [name: "level", value: Math.round(bulb.value.action.bri * 100 / 255)])
+                        if (bulb.value.action.sat) 
+                        	{
+                           		def hue = Math.min(Math.round(bulb.value.action.hue * 100 / 65535), 65535) as int
+                            	def sat = Math.round(bulb.value.action.sat * 100 / 255) as int
+                            	def hex = colorUtil.hslToHex(hue, sat)
+                            	sendEvent(g.deviceNetworkId, [name: "color", value: hex])
+                            	sendEvent(g.deviceNetworkId, [name: "hue", value: hue])
+                            	sendEvent(g.deviceNetworkId, [name: "saturation", value: sat])
+                        	}
+                  	 	}
+	                        
+               	 	} 
                 }
             }
             else
@@ -685,7 +804,14 @@ def parse(childDevice, description) {
                         def childDeviceNetworkId = app.id + "/"
                         def eventType
                         body?.success[0].each { k,v ->
-                            childDeviceNetworkId += k.split("/")[2]
+                        	if(k.split("/")[1] == "groups")
+							{
+								childDeviceNetworkId += k.split("/GROUP")[2]
+							}
+							else
+							{
+                            	childDeviceNetworkId += k.split("/")[2]
+                            }
                             if (!hsl[childDeviceNetworkId]) hsl[childDeviceNetworkId] = [:]
                             eventType = k.split("/")[4]
                             log.debug "eventType: $eventType"
@@ -720,7 +846,6 @@ def parse(childDevice, description) {
                         sendEvent(hsl.childDeviceNetworkId, [name: "color", value: hex])
                     }
                 }
-
             }
         }
     } else {
@@ -742,6 +867,14 @@ def on(childDevice, transition_deprecated = 0) {
     return "level: $percent"
 }
 
+def groupOn(childDevice, transitiontime, percent) {
+	def level = Math.min(Math.round(percent * 255 / 100), 255)
+	def value = [on: true, bri: level]
+	value.transitiontime = transitiontime * 10
+	log.debug "Executing 'on'"
+	put("groups/${getGroupID(childDevice)}/action", value)
+}
+
 def off(childDevice, transition_deprecated = 0) {
     log.debug "Executing 'off'"
     put("lights/${getId(childDevice)}/state", [on: false])
@@ -754,10 +887,31 @@ def setLevel(childDevice, percent) {
     put("lights/${getId(childDevice)}/state", [bri: level, on: percent > 0])
 }
 
+def setGroupLevel(childDevice, percent, transitiontime) {
+	log.debug "Executing 'setLevel'"
+	def level = Math.min(Math.round(percent * 255 / 100), 255)
+	def value = [bri: level, on: percent > 0, transitiontime: transitiontime * 10]
+	put("groups/${getGroupID(childDevice)}/action", value)
+}
+
+def groupOff(childDevice, transitiontime) {
+	log.debug "Executing 'off'"
+    def value = [on: false]
+	value.transitiontime = transitiontime * 10
+	put("groups/${getGroupID(childDevice)}/action", value)
+}
+
 def setSaturation(childDevice, percent) {
     log.debug "Executing 'setSaturation($percent)'"
     def level = Math.min(Math.round(percent * 255 / 100), 255)
     put("lights/${getId(childDevice)}/state", [sat: level])
+}
+
+
+def setGroupSaturation(childDevice, percent, transitiontime) {
+	log.debug "Executing 'setSaturation($percent)'"
+	def level = Math.min(Math.round(percent * 255 / 100), 255)
+	put("groups/${getGroupID(childDevice)}/action", [sat: level, transitiontime: transitiontime * 10])
 }
 
 def setHue(childDevice, percent) {
@@ -765,6 +919,14 @@ def setHue(childDevice, percent) {
     def level = Math.min(Math.round(percent * 65535 / 100), 65535)
     put("lights/${getId(childDevice)}/state", [hue: level])
 }
+
+def setGroupHue(childDevice, percent, transitiontime) {
+	log.debug "Executing 'setHue($percent)'"
+	def level =	Math.min(Math.round(percent * 65535 / 100), 65535)
+	put("groups/${getGroupID(childDevice)}/action", [hue: level, transitiontime: transitiontime * 10])
+}
+
+
 
 def setColor(childDevice, huesettings) {
     log.debug "Executing 'setColor($huesettings)'"
@@ -787,6 +949,30 @@ def setColor(childDevice, huesettings) {
     put("lights/${getId(childDevice)}/state", value)
 }
 
+def setGroupColor(childDevice, color) {
+	log.debug "Executing 'setColor($color)'"
+	def hue =	Math.min(Math.round(color.hue * 65535 / 100), 65535)
+	def sat = Math.min(Math.round(color.saturation * 255 / 100), 255)
+
+	def value = [sat: sat, hue: hue]
+	if (color.level != null) {
+		value.bri = Math.min(Math.round(color.level * 255 / 100), 255)
+		value.on = value.bri > 0
+	}
+	if (color.transitiontime != null)
+	{
+		value.transitiontime = color.transitiontime * 10
+	}
+
+	if (color.switch) {
+		value.on = color.switch == "on"
+	}
+
+	log.debug "sending command $value"
+	put("groups/${getGroupID(childDevice)}/action", value)
+}
+
+
 def nextLevel(childDevice) {
     def level = device.latestValue("level") as Integer ?: 0
     if (level < 100) {
@@ -807,6 +993,18 @@ private getId(childDevice) {
     }
 }
 
+private getGroupID(childDevice) {
+	log.debug "WORKING SPOT"
+	if (childDevice.device?.deviceNetworkId?.startsWith("HUE")) {
+		log.trace childDevice.device?.deviceNetworkId[3..-1]
+		return childDevice.device?.deviceNetworkId[3..-1]
+	}
+	else {
+		return childDevice.device?.deviceNetworkId.split("/GROUP")[-1]
+	}
+}
+
+
 private poll() {
     def host = getBridgeIP()
     def uri = "/api/${state.username}/lights/"
@@ -816,6 +1014,17 @@ HOST: ${host}
 
 """, physicalgraph.device.Protocol.LAN, selectedHue))
     } catch (all) {
+        log.warn "Parsing Body failed - trying again..."
+        doDeviceSync()
+    }
+    uri = "/api/${state.username}/groups/"
+    try {
+   	log.debug "GET:  $uri"
+	sendHubCommand(new physicalgraph.device.HubAction("""GET ${uri} HTTP/1.1
+HOST: ${host}
+
+""", physicalgraph.device.Protocol.LAN, selectedHue))
+	} catch (all) {
         log.warn "Parsing Body failed - trying again..."
         doDeviceSync()
     }
@@ -888,6 +1097,23 @@ def convertBulbListToMap() {
         log.error "Caught error attempting to convert bulb list to map: $e"
     }
 }
+
+def convertGroupListToMap() {
+	log.debug "CONVERT LIST"
+	try {
+		if (state.groups instanceof java.util.List) {
+			def map = [:]
+			state.groups.unique {it.id}.each { group ->
+				map << ["${group.id}":["id":group.id, "name":group.name, "hub":group.hub]]
+			}
+			state.group = map
+		}
+	}
+	catch(Exception e) {
+		log.error "Caught error attempting to convert group list to map: $e"
+	}
+}
+
 
 private String convertHexToIP(hex) {
     [convertHexToInt(hex[0..1]),convertHexToInt(hex[2..3]),convertHexToInt(hex[4..5]),convertHexToInt(hex[6..7])].join(".")
