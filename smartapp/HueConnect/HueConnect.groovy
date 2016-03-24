@@ -769,6 +769,8 @@ def parse(childDevice, description) {
                                 sendEvent(d.deviceNetworkId, [name: "color", value: hex])
                                 sendEvent(d.deviceNetworkId, [name: "hue", value: hue])
                                 sendEvent(d.deviceNetworkId, [name: "saturation", value: sat])
+                                sendEvent(d.deviceNetworkId, [name: "effect", value: bulb.value?.state?.effect])
+                    			sendEvent(d.deviceNetworkId, [name: "alert", value: bulb.value?.state?.alert])
                             }
                         }
                     }
@@ -788,6 +790,8 @@ def parse(childDevice, description) {
                             	sendEvent(g.deviceNetworkId, [name: "color", value: hex])
                             	sendEvent(g.deviceNetworkId, [name: "hue", value: hue])
                             	sendEvent(g.deviceNetworkId, [name: "saturation", value: sat])
+                                sendEvent(d.deviceNetworkId, [name: "effect", value: bulb.value?.action?.effect])
+                    			sendEvent(d.deviceNetworkId, [name: "alert", value: bulb.value?.action?.alert])
                         	}
                   	 	}
 	                        
@@ -827,6 +831,12 @@ def parse(childDevice, description) {
                                     break
                                 case "hue":
                                     hsl[childDeviceNetworkId].hue = Math.min(Math.round(v * 100 / 65535), 65535) as int
+                                    break
+                                case "effect":
+                                    sendEvent(childDeviceNetworkId, [name: "effect", value: v]) 
+                                    break
+                                case "alert":
+                                    sendEvent(childDeviceNetworkId, [name: "alert", value: v]) 
                                     break
                             }
                         }
@@ -907,7 +917,6 @@ def setSaturation(childDevice, percent) {
     put("lights/${getId(childDevice)}/state", [sat: level])
 }
 
-
 def setGroupSaturation(childDevice, percent, transitiontime) {
 	log.debug "Executing 'setSaturation($percent)'"
 	def level = Math.min(Math.round(percent * 255 / 100), 255)
@@ -925,8 +934,6 @@ def setGroupHue(childDevice, percent, transitiontime) {
 	def level =	Math.min(Math.round(percent * 65535 / 100), 65535)
 	put("groups/${getGroupID(childDevice)}/action", [hue: level, transitiontime: transitiontime * 10])
 }
-
-
 
 def setColor(childDevice, huesettings) {
     log.debug "Executing 'setColor($huesettings)'"
@@ -972,6 +979,25 @@ def setGroupColor(childDevice, color) {
 	put("groups/${getGroupID(childDevice)}/action", value)
 }
 
+def setEffect(childDevice, desired) {
+    log.debug "Executing 'setEffect'"
+    put("lights/${getId(childDevice)}/state", [effect: desired])
+}
+ 
+def setAlert(childDevice, desired) {
+    log.debug "Executing 'setAlert'"
+    put("lights/${getId(childDevice)}/state", [alert: desired])
+}
+
+def setGroupEffect(childDevice, desired) {
+    log.debug "Executing 'setGroupEffect'"
+    put("groups/${getGroupID(childDevice)}/action", [effect: desired])
+}
+ 
+def setGroupAlert(childDevice, desired) {
+    log.debug "Executing 'setGroupAlert'"
+    put("groups/${getGroupID(childDevice)}/action", [alert: desired])
+}
 
 def nextLevel(childDevice) {
     def level = device.latestValue("level") as Integer ?: 0
@@ -1003,7 +1029,6 @@ private getGroupID(childDevice) {
 		return childDevice.device?.deviceNetworkId.split("/GROUP")[-1]
 	}
 }
-
 
 private poll() {
     def host = getBridgeIP()

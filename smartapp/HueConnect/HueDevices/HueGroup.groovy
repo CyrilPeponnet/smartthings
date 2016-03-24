@@ -21,7 +21,14 @@ metadata {
 		capability "Test Capability" //Hope to replace with Transistion Time
 
 		command "setAdjustedColor"
-
+        command "effectColorloop"        
+        command "effectNone" 
+        command "alertBlink"
+        command "alertPulse"
+        command "alertNone"
+        
+        attribute "alertMode", "string"
+        attribute "effectMode", "string"
 		attribute "groupID", "string"
 	}
 
@@ -33,43 +40,64 @@ metadata {
 		state "on", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-multi", backgroundColor:"#79b821" 
 		state "off", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-multi", backgroundColor:"#ffffff"
 	}
+    
 	standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
 		state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
 	}
+    
 	controlTile("rgbSelector", "device.color", "color", height: 3, width: 3, inactiveLabel: false) {
 		state "color", action:"setAdjustedColor"
 	}
+    
 	controlTile("levelSliderControl", "device.level", "slider", height: 1, width: 2, inactiveLabel: false) {
 		state "level", action:"switch level.setLevel"
 	}
+    
 	valueTile("level", "device.level", inactiveLabel: false, decoration: "flat") {
 		state "level", label: 'Level ${currentValue}%'
 	}
+    
 	controlTile("saturationSliderControl", "device.saturation", "slider", height: 1, width: 2, inactiveLabel: false) {
 		state "saturation", action:"color control.setSaturation"
 	}
+    
 	valueTile("saturation", "device.saturation", inactiveLabel: false, decoration: "flat") {
 		state "saturation", label: 'Sat ${currentValue}    '
 	}
+    
 	controlTile("hueSliderControl", "device.hue", "slider", height: 1, width: 2, inactiveLabel: false) {
 		state "hue", action:"color control.setHue"
 	}
+    
 	valueTile("hue", "device.hue", inactiveLabel: false, decoration: "flat") {
 		state "hue", label: 'Hue ${currentValue}   '
 	}
+    
 	valueTile("transitiontime", "device.transitiontime", inactiveLabel: false, decoration: "flat") {
 		state "transitiontime", label: 'Transitiontime ${currentValue}   '
 	}
+    
     valueTile("color", "device.color", inactiveLabel: false, decoration: "flat") {
 		state "color", label: 'color ${currentValue}   '
 	}
+    
 	valueTile("groupID", "device.groupID", inactiveLabel: false, decoration: "flat") {
 		state "groupID", label: 'groupID ${currentValue}   '
 	}
-
-
+    
+    standardTile("effectSelector", "device.effectMode", decoration: "flat", width: 1, height: 1) {
+       	state "colorloop on", label:'${name}', icon:"st.Weather.weather3", action:"effectColorloop", nextState:"colorloop off"
+        state "colorloop off", label:'${name}', icon:"st.Weather.weather3", action:"effectNone", nextState:"colorloop on"
+	}
+        
+    standardTile("alertSelector", "device.alertMode", decoration: "flat", width: 1, height: 1) {
+      	state "blink", label:'${name}', action:"alertBlink", icon:"st.Lighting.light11", backgroundColor:"#ffffff", nextState:"pulse"
+        state "pulse", label:'${name}', action:"alertPulse", icon:"st.Lighting.light11", backgroundColor:"#e3eb00", nextState:"off"
+        state "off", label:'${name}', action:"alertNone", icon:"st.Lighting.light13", backgroundColor:"#79b821", nextState:"blink"
+    }
+    
 	main(["switch"])
-	details(["switch", "levelSliderControl", "rgbSelector", "refresh","transitiontime","groupID"])
+	details(["switch", "levelSliderControl", "rgbSelector", "refresh", "transitiontime", "groupID", "effectSelector", "alertSelector"])
 
 }
 
@@ -278,4 +306,41 @@ def adjustOutgoingHue(percent) {
 	}
 	log.info "percent: $percent, adjusted: $adjusted"
 	adjusted
+}
+
+def setAlert(v) {
+    log.debug "setGroupAlert: ${v}, $this"
+    parent.setGroupAlert(this, v)
+    sendEvent(name: "alert", value: v, isStateChange: true)
+}
+
+def alertNone() {
+	log.debug "Alert option: 'none'"
+    setAlert("none")
+}
+
+def alertBlink() {
+	log.debug "Alert option: 'select'"
+    setAlert("select")
+}
+
+def alertPulse() {
+	log.debug "Alert option: 'lselect'"
+    setAlert("lselect")
+}
+
+def setEffect(v) {
+    log.debug "setEffect: ${v}, $this"
+    parent.setGroupEffect(this, v)
+    sendEvent(name: "effect", value: v, isStateChange: true)
+}
+
+def effectNone() { 
+    log.debug "Effect option: 'none'"
+    setEffect("none")
+}
+
+def effectColorloop() { 
+    log.debug "Effect option: 'colorloop'"
+    setEffect("colorloop")
 }
