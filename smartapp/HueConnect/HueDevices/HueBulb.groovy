@@ -1,4 +1,3 @@
-
 /**
  *  Hue Bulb
  *
@@ -18,6 +17,14 @@ metadata {
         command "setAdjustedColor"
         command "reset"
         command "refresh"
+        command "effectColorloop"        
+        command "effectNone" 
+        command "alertBlink"
+        command "alertPulse"
+        command "alertNone"
+        
+        attribute "alertMode", "string"
+        attribute "effectMode", "string"
     }
 
     simulator {
@@ -25,7 +32,7 @@ metadata {
     }
 
     tiles (scale: 2){
-        multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, canChangeIcon: true){
+        multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 6, canChangeIcon: true){
             tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
                 attributeState "on", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#79b821", nextState:"turningOff"
                 attributeState "off", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"turningOn"
@@ -43,13 +50,25 @@ metadata {
         standardTile("reset", "device.reset", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
             state "default", label:"Reset Color", action:"reset", icon:"st.lights.philips.hue-single"
         }
+        
         standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
             state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
         }
+        
+        standardTile("effectSelector", "device.effectMode", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+        	state "colorloop on", label:'${name}', icon:"st.Weather.weather3", action:"effectColorloop", nextState:"colorloop off"
+            state "colorloop off", label:'${name}', icon:"st.Weather.weather3", action:"effectNone", nextState:"colorloop on"
+		}
+        
+        standardTile("alertSelector", "device.alertMode", decoration: "flat", width: 2, height: 2) {
+        	state "blink", label:'${name}', action:"alertBlink", icon:"st.Lighting.light11", backgroundColor:"#ffffff", nextState:"pulse"
+            state "pulse", label:'${name}', action:"alertPulse", icon:"st.Lighting.light11", backgroundColor:"#e3eb00", nextState:"off"
+            state "off", label:'${name}', action:"alertNone", icon:"st.Lighting.light13", backgroundColor:"#79b821", nextState:"blink"
+       }
     }
 
     main(["switch"])
-    details(["switch", "levelSliderControl", "rgbSelector", "refresh", "reset"])
+    details(["switch", "levelSliderControl", "rgbSelector", "refresh", "reset", "effectSelector", "alertSelector"])
 }
 
 // parse events into attributes
@@ -76,6 +95,43 @@ def on() {
 def off() {
     log.trace parent.off(this)
     sendEvent(name: "switch", value: "off")
+}
+ 
+def setAlert(v) {
+    log.debug "setAlert: ${v}, $this"
+    parent.setAlert(this, v)
+    sendEvent(name: "alert", value: v, isStateChange: true)
+}
+
+def alertNone() {
+	log.debug "Alert option: 'none'"
+    setAlert("none")
+}
+
+def alertBlink() {
+	log.debug "Alert option: 'select'"
+    setAlert("select")
+}
+
+def alertPulse() {
+	log.debug "Alert option: 'lselect'"
+    setAlert("lselect")
+}
+
+def setEffect(v) {
+    log.debug "setEffect: ${v}, $this"
+    parent.setEffect(this, v)
+    sendEvent(name: "effect", value: v, isStateChange: true)
+}
+
+def effectNone() { 
+    log.debug "Effect option: 'none'"
+    setEffect("none")
+}
+
+def effectColorloop() { 
+    log.debug "Effect option: 'colorloop'"
+    setEffect("colorloop")
 }
 
 def nextLevel() {
