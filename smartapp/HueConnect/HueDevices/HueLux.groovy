@@ -14,6 +14,11 @@ metadata {
         capability "Sensor"
 
         command "refresh"
+        command "alertBlink"
+        command "alertPulse"
+        command "alertNone"
+        
+        attribute "alertMode", "string"
     }
 
     simulator {
@@ -50,9 +55,15 @@ metadata {
         standardTile("refresh", "device.switch", inactiveLabel: false, height: 2, width: 2, decoration: "flat") {
             state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
         }
+        
+        standardTile("alertSelector", "device.alertMode", decoration: "flat", width: 2, height: 2) {
+        	state "blink", label:'${name}', action:"alertBlink", icon:"st.Lighting.light11", backgroundColor:"#ffffff", nextState:"pulse"
+            state "pulse", label:'${name}', action:"alertPulse", icon:"st.Lighting.light11", backgroundColor:"#e3eb00", nextState:"off"
+            state "off", label:'${name}', action:"alertNone", icon:"st.Lighting.light13", backgroundColor:"#79b821", nextState:"blink"
+       }
 
         main(["switch"])
-        details(["rich-control", "refresh"])
+        details(["rich-control", "refresh", "alertSelector"])
     }
 }
 
@@ -93,4 +104,25 @@ def setLevel(percent) {
 def refresh() {
     log.debug "Executing 'refresh'"
     parent.manualRefresh()
+}
+
+def setAlert(v) {
+    log.debug "setAlert: ${v}, $this"
+    parent.setAlert(this, v)
+    sendEvent(name: "alert", value: v, isStateChange: true)
+}
+
+def alertNone() {
+	log.debug "Alert option: 'none'"
+    setAlert("none")
+}
+
+def alertBlink() {
+	log.debug "Alert option: 'select'"
+    setAlert("select")
+}
+
+def alertPulse() {
+	log.debug "Alert option: 'lselect'"
+    setAlert("lselect")
 }
