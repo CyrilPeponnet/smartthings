@@ -331,7 +331,7 @@ def alertPulse() {
 
 def setEffect(v) {
     log.debug "setEffect: ${v}, $this"
-    parent.setEffect(this, v)
+    parent.setGroupEffect(this, v)
     sendEvent(name: "effect", value: v, isStateChange: true)
 }
 
