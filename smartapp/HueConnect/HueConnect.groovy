@@ -189,7 +189,7 @@ private sendDeveloperReq() {
         headers: [
             HOST: host
         ],
-        body: [devicetype: "$token-0", username: "$token-0"]], "${selectedHue}"))
+        body: [devicetype: "$token-0"]], "${selectedHue}"))
 }
 
 private discoverHueBulbs() {
