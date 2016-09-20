@@ -722,7 +722,7 @@ def locationHandler(evt) {
 }
 
 def doDeviceSync(){
-    log.trace "Doing Hue Device Sync!"
+    log.trace "Doing Hue Device Sync"
     convertBulbListToMap()
     convertGroupListToMap()
     poll()
@@ -734,11 +734,24 @@ def doDeviceSync(){
     discoverBridges()
 }
 
+private void updateBridgeStatus(childDevice) {
+	// Update activity timestamp if child device is a valid bridge
+	def vbridges = getVerifiedHueBridges()
+	def vbridge = vbridges.find {"${it.value.mac}".toUpperCase() == childDevice?.device?.deviceNetworkId?.toUpperCase()}
+	vbridge?.value?.lastActivity = now()
+	if(vbridge) {
+		childDevice?.sendEvent(name: "status", value: "Online")
+	}
+}
+
 /////////////////////////////////////
 //CHILD DEVICE METHODS
 /////////////////////////////////////
 
 def parse(childDevice, description) {
+
+updateBridgeStatus(childDevice)
+
     def parsedEvent = parseLanMessage(description)
     //def parsedEvent = parseEventMessage(description)
     if (parsedEvent.headers && parsedEvent.body) {
@@ -750,7 +763,7 @@ def parse(childDevice, description) {
             try {
                 body = new groovy.json.JsonSlurper().parseText(bodyString)
             } catch (all) {
-                log.warn "Parsing Body failed - trying again..."
+                log.warn "Parsing Body failed - trying again...ChildDevice"
                 poll()
             }
             if (body instanceof java.util.HashMap) {
@@ -774,8 +787,8 @@ def parse(childDevice, description) {
                             }
                         }
                     }
-                    def g = bulbs.find{it.deviceNetworkId == "${app.id}/GROUP${bulb.key}"}    
-               	 	if (g) {
+                    def g = bulbs.find{it.deviceNetworkId == "${app.id}/GROUP${bulb.key}"}
+                    if (g) {
                 		log.trace "Matched group in Response"
 	                	if(bulb.value.type == "LightGroup" || bulb.value.type == "Room")
                 			{
@@ -790,9 +803,14 @@ def parse(childDevice, description) {
                             	sendEvent(g.deviceNetworkId, [name: "color", value: hex])
                             	sendEvent(g.deviceNetworkId, [name: "hue", value: hue])
                             	sendEvent(g.deviceNetworkId, [name: "saturation", value: sat])
-                                sendEvent(d.deviceNetworkId, [name: "effect", value: bulb.value?.action?.effect])
-                    			sendEvent(d.deviceNetworkId, [name: "alert", value: bulb.value?.action?.alert])
-                        	}
+                               // sendEvent(d.deviceNetworkId, [name: "effect", value: bulb.value?.action?.effect])
+                               // sendEvent(d.deviceNetworkId, [name: "alert", value: bulb.value?.action?.alert])
+                        if (bulb.value.action.effect) { sendEvent(g.deviceNetworkId, [name: "effect", value: bulb.value?.action?.effect]) }
+						if (bulb.value.action.alert) { sendEvent(g.deviceNetworkId, [name: "alert", value: bulb.value?.action?.alert]) }
+                        if (bulb.value.action.transitiontime) { sendEvent(g.deviceNetworkId, [name: "transitiontime", value: bulb.value?.action?.transitiontime ?: 0]) }
+						if (bulb.value.action.colormode) { sendEvent(g.deviceNetworkId, [name: "colormode", value: bulb.value?.action?.colormode]) }
+                            
+                            }
                   	 	}
 	                        
                	 	} 
@@ -1034,19 +1052,19 @@ private poll() {
     def host = getBridgeIP()
     def uri = "/api/${state.username}/lights/"
     try {
-sendHubCommand(new physicalgraph.device.HubAction("GET ${uri} HTTP/1.1\r\n" +
-	"HOST: ${host}\r\n\r\n", physicalgraph.device.Protocol.LAN, selectedHue))
+	sendHubCommand(new physicalgraph.device.HubAction("GET ${uri} HTTP/1.1\r\n" +
+		"HOST: ${host}\r\n\r\n", physicalgraph.device.Protocol.LAN, selectedHue))
     } catch (all) {
-        log.warn "Parsing Body failed - trying again..."
+        log.warn "Parsing Body failed - trying again...Polling Lights"
         doDeviceSync()
     }
     uri = "/api/${state.username}/groups/"
     try {
    	log.debug "GET:  $uri"
-sendHubCommand(new physicalgraph.device.HubAction("GET ${uri} HTTP/1.1\r\n" +
-	"HOST: ${host}\r\n\r\n", physicalgraph.device.Protocol.LAN, selectedHue))
+	sendHubCommand(new physicalgraph.device.HubAction("GET ${uri} HTTP/1.1\r\n" +
+		"HOST: ${host}\r\n\r\n", physicalgraph.device.Protocol.LAN, selectedHue))
 	} catch (all) {
-        log.warn "Parsing Body failed - trying again..."
+        log.warn "Parsing Body failed - trying again...Polling Groups"
         doDeviceSync()
     }
 }
@@ -1060,11 +1078,11 @@ private put(path, body) {
     log.debug "PUT:  $host$uri"
     log.debug "BODY: ${bodyJSON}"
 
-sendHubCommand(new physicalgraph.device.HubAction("PUT $uri HTTP/1.1\r\n" +
-	"HOST: ${host}\r\n" +
-	"Content-Length: ${length}\r\n" +
-	"\r\n" +
-	"${bodyJSON}", physicalgraph.device.Protocol.LAN, "${selectedHue}"))
+	sendHubCommand(new physicalgraph.device.HubAction("PUT $uri HTTP/1.1\r\n" +
+		"HOST: ${host}\r\n" +
+		"Content-Length: ${length}\r\n" +
+		"\r\n" +
+		"${bodyJSON}", physicalgraph.device.Protocol.LAN, "${selectedHue}"))
 
 }
 
