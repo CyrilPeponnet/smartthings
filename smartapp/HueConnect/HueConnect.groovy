@@ -25,7 +25,7 @@ definition(
     name: "Hue (ReConnect)",
     namespace: "smartthings",
     author: "SmartThings",
-    description: "Allows you to connect your Philips Hue lights with SmartThings and control them from your Things area or Dashboard in the SmartThings Mobile app. Adjust colors by going to the Thing detail screen for your Hue lights (tap the gear on Hue tiles).\n\nPlease update your Hue Bridge first, outside of the SmartThings app, using the Philips Hue app.",
+    description: "Allows you to connect your Philips Hue lights with SmartThings and control them from your Things area or Dashboard in the SmartThings Mobile app. Adjusts by going to the Thing detail screen for your Hue lights (tap the gear on Hue tiles).\n\nPlease update your Hue Bridge first, outside of the SmartThings app, using the Philips Hue app.",
     category: "SmartThings Labs",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Partner/hue.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Partner/hue@2x.png",
@@ -713,7 +713,7 @@ def locationHandler(evt) {
                     def groups = getHueGroups()
                     log.debug "Adding bulbs, groups & scenes to state!"
                     body.each { k,v ->
-                        if (v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light" ) {
+                        if (v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light" || v.type == "Color Temperature Light") {
                             bulbs[k] = [id: k, name: v.name, type: v.type, hub:parsedEvent.hub]
                         } else if (v.type == "LightGroup" || v.type == "Room") {
                         	groups[k] = [id: k, name: v.name, type: v.type, hub:parsedEvent.hub]
