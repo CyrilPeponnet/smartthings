@@ -2,6 +2,11 @@
  *  Hue Service Manager
  *
  *  Author: Juan Risso (juan@smartthings.com)
+ *  
+ *  Updated By: Steven Dale
+ *
+ *  Updated: 28/09/2016
+ *  Version: 1.01
  *
  *  Copyright 2015 SmartThings
  *
