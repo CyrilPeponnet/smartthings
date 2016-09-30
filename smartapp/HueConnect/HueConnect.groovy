@@ -6,7 +6,7 @@
  *  Updated By: Steven Dale
  *
  *  Updated: 28/09/2016
- *  Version: 1.03 280916
+ *  Version: 1.04 280916
  *
  *  Copyright 2015 SmartThings
  *
