@@ -6,7 +6,7 @@
  *  Updated By: Steven Dale
  *
  *  Updated: 28/09/2016
- *  Version: 1.02
+ *  Version: 1.03 280916
  *
  *  Copyright 2015 SmartThings
  *
@@ -435,7 +435,7 @@ def itemListHandler(hub, data = "") {
                 if(v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light") {
                 	log.debug("Its a bulb")
                     bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
-                }  else if(v.type == "Color Temperature Light" ) {
+                }  else if(v.type == "Color temperature light" ) {
                 	log.debug("Its a White Ambiance Bulb ")
                     bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
 		}  else if (v.type == "LightGroup" || v.type == "Room") {
@@ -482,7 +482,7 @@ def addBulbs() {
                     if (newHueBulb?.value?.type?.equalsIgnoreCase("Dimmable light")) {
                         d = addChildDevice("smartthings", "Hue Lux Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
                     } 
-		    else if(newHueBulb?.value?.type?.equalsIgnoreCase("Color Temperature Light")) {
+		    else if(newHueBulb?.value?.type?.equalsIgnoreCase("Color temperature light")) {
                         d = addChildDevice("smartthings", "Hue White Ambiance Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
                     }
 		    else {
