@@ -6,7 +6,7 @@
  *  Updated By: Steven Dale
  *
  *  Updated: 28/09/2016
- *  Version: 1.01
+ *  Version: 1.02
  *
  *  Copyright 2015 SmartThings
  *
@@ -671,6 +671,7 @@ def locationHandler(evt) {
                 else
                     networkAddress = d.latestState('networkAddress').stringValue
                 log.trace "Host: $host - $networkAddress"
+                log.trace "Updated Code v1.02"
                 if(host != networkAddress) {
                     log.debug "Device's port or ip changed for device $d..."
                     dstate.ip = ip
