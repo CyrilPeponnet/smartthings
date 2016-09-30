@@ -6,7 +6,7 @@
  *  Updated By: Steven Dale
  *
  *  Updated: 28/09/2016
- *  Version: 1.04 280916
+ *  Version: 1.05 280916
  *
  *  Copyright 2015 SmartThings
  *
@@ -432,13 +432,14 @@ def itemListHandler(hub, data = "") {
         object.each { k,v ->
             if (v instanceof Map) {
                 // hacky way to guess if it's a bulb or a scene
-                if(v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light") {
-                	log.debug("Its a bulb")
+                if(v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light" || v.type == "Color temperature light") {
+			if(v.type == "Color temperature light"){
+			log.debug("Its a Color temperature light")	
+			}else{	
+				log.debug("Its a bulb")}
                     bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
-                }  else if(v.type == "Color temperature light" ) {
-                	log.debug("Its a White Ambiance Bulb ")
-                    bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
-		}  else if (v.type == "LightGroup" || v.type == "Room") {
+                }  
+		   else if (v.type == "LightGroup" || v.type == "Room") {
                 	log.debug("Its a group")
                     //def lights = []
                 	//v.lights.each { light -> lights << state.bulbs?."${light}".name}
