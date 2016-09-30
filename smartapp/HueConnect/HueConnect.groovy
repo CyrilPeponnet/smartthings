@@ -432,15 +432,18 @@ def itemListHandler(hub, data = "") {
         object.each { k,v ->
             if (v instanceof Map) {
                 // hacky way to guess if it's a bulb or a scene
-                if(v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light" || v.type == "Color Temperature Light" ) {
+                if(v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light") {
                 	log.debug("Its a bulb")
                     bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
-                } else if (v.type == "LightGroup" || v.type == "Room") {
+                }  else if(v.type == "Color Temperature Light" ) {
+                	log.debug("Its a White Ambiance Bulb ")
+                    bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
+		}  else if (v.type == "LightGroup" || v.type == "Room") {
                 	log.debug("Its a group")
                     //def lights = []
                 	//v.lights.each { light -> lights << state.bulbs?."${light}".name}
                     groups[k] = [id: k, name: v.name, type: v.type, hub:hub]
-                }else if (v.get('lastupdated')) {
+                }  else if (v.get('lastupdated')) {
                 	log.debug("Its a scene")
                    //def lights = []
                    // v.lights.each { light -> lights << state.bulbs?."${light}".name}
