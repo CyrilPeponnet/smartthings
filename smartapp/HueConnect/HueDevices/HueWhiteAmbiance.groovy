@@ -18,6 +18,11 @@ metadata {
         capability "Health Check"
 
         command "refresh"
+        command "alertBlink"
+        command "alertPulse"
+        command "alertNone"
+        
+        attribute "alertMode", "string"
     }
 
     simulator {
@@ -35,6 +40,9 @@ metadata {
             tileAttribute ("device.level", key: "SLIDER_CONTROL") {
                 attributeState "level", action:"switch level.setLevel", range:"(0..100)"
             }
+                tileAttribute ("device.level", key: "SECONDARY_CONTROL") {
+                attributeState "level", label: 'Level ${currentValue}%'
+            }
         }
 
         controlTile("colorTempSliderControl", "device.colorTemperature", "slider", width: 4, height: 2, inactiveLabel: false, range:"(2200..6500)") {
@@ -48,9 +56,15 @@ metadata {
         standardTile("refresh", "device.refresh", height: 2, width: 2, inactiveLabel: false, decoration: "flat") {
             state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
         }
+        
+       standardTile("alertSelector", "device.alertMode", decoration: "flat", width: 2, height: 2) {
+       state "blink", label:'${name}', action:"alertBlink", icon:"st.Lighting.light11", backgroundColor:"#ffffff", nextState:"pulse"
+       state "pulse", label:'${name}', action:"alertPulse", icon:"st.Lighting.light11", backgroundColor:"#e3eb00", nextState:"off"
+       state "off", label:'${name}', action:"alertNone", icon:"st.Lighting.light13", backgroundColor:"#79b821", nextState:"blink"
+       }
 
         main(["rich-control"])
-        details(["rich-control", "colorTempSliderControl", "colorTemp", "refresh"])
+        details(["rich-control", "colorTempSliderControl", "colorTemp", "refresh", "alertSelector"])
     }
 }
 
@@ -109,4 +123,25 @@ void refresh() {
 
 def ping() {
     log.debug "${parent.ping(this)}"
+}
+
+def setAlert(v) {
+    log.debug "setAlert: ${v}, $this"
+    parent.setAlert(this, v)
+    sendEvent(name: "alert", value: v, isStateChange: true)
+}
+
+def alertNone() {
+	log.debug "Alert option: 'none'"
+    setAlert("none")
+}
+
+def alertBlink() {
+	log.debug "Alert option: 'select'"
+    setAlert("select")
+}
+
+def alertPulse() {
+	log.debug "Alert option: 'lselect'"
+    setAlert("lselect")
 }
