@@ -672,7 +672,7 @@ def locationHandler(evt) {
                 else
                     networkAddress = d.latestState('networkAddress').stringValue
                 log.trace "Host: $host - $networkAddress"
-                log.trace "Updated Code v1.02"
+                log.trace "Updated Code v1.06"
                 if(host != networkAddress) {
                     log.debug "Device's port or ip changed for device $d..."
                     dstate.ip = ip
