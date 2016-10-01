@@ -2,6 +2,11 @@
  *  Hue Service Manager
  *
  *  Author: Juan Risso (juan@smartthings.com)
+ *  
+ *  Updated By: Steven Dale
+ *
+ *  Updated: 1/10/2016
+ *  Version: 1.06
  *
  *  Copyright 2015 SmartThings
  *
@@ -20,7 +25,7 @@ definition(
     name: "Hue (ReConnect)",
     namespace: "smartthings",
     author: "SmartThings",
-    description: "Allows you to connect your Philips Hue lights with SmartThings and control them from your Things area or Dashboard in the SmartThings Mobile app. Adjust colors by going to the Thing detail screen for your Hue lights (tap the gear on Hue tiles).\n\nPlease update your Hue Bridge first, outside of the SmartThings app, using the Philips Hue app.",
+    description: "Allows you to connect your Philips Hue lights with SmartThings and control them from your Things area or Dashboard in the SmartThings Mobile app. Adjusts by going to the Thing detail screen for your Hue lights (tap the gear on Hue tiles).\n\nPlease update your Hue Bridge first, outside of the SmartThings app, using the Philips Hue app.",
     category: "SmartThings Labs",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Partner/hue.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Partner/hue@2x.png",
@@ -427,15 +432,19 @@ def itemListHandler(hub, data = "") {
         object.each { k,v ->
             if (v instanceof Map) {
                 // hacky way to guess if it's a bulb or a scene
-                if(v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light" ) {
-                	log.debug("Its a bulb")
+                if(v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light" || v.type == "Color temperature light") {
+			if(v.type == "Color temperature light"){
+			log.debug("Its a Color temperature light")	
+			}else{	
+				log.debug("Its a bulb")}
                     bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
-                } else if (v.type == "LightGroup" || v.type == "Room") {
+                }  
+		   else if (v.type == "LightGroup" || v.type == "Room") {
                 	log.debug("Its a group")
                     //def lights = []
                 	//v.lights.each { light -> lights << state.bulbs?."${light}".name}
                     groups[k] = [id: k, name: v.name, type: v.type, hub:hub]
-                }else if (v.get('lastupdated')) {
+                }  else if (v.get('lastupdated')) {
                 	log.debug("Its a scene")
                    //def lights = []
                    // v.lights.each { light -> lights << state.bulbs?."${light}".name}
@@ -473,7 +482,11 @@ def addBulbs() {
                     // If we have dimmable light use the lux device otherwise use standard hue bulb device
                     if (newHueBulb?.value?.type?.equalsIgnoreCase("Dimmable light")) {
                         d = addChildDevice("smartthings", "Hue Lux Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
-                    } else {
+                    } 
+		    else if(newHueBulb?.value?.type?.equalsIgnoreCase("Color temperature light")) {
+                        d = addChildDevice("smartthings", "Hue White Ambiance Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
+                    }
+		    else {
                         d = addChildDevice("smartthings", "Hue Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
                     }
                     log.debug "created ${d.displayName} with id $dni"
@@ -659,6 +672,7 @@ def locationHandler(evt) {
                 else
                     networkAddress = d.latestState('networkAddress').stringValue
                 log.trace "Host: $host - $networkAddress"
+                log.trace "Updated Code v1.02"
                 if(host != networkAddress) {
                     log.debug "Device's port or ip changed for device $d..."
                     dstate.ip = ip
@@ -704,7 +718,7 @@ def locationHandler(evt) {
                     def groups = getHueGroups()
                     log.debug "Adding bulbs, groups & scenes to state!"
                     body.each { k,v ->
-                        if (v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light" ) {
+                        if (v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light" || v.type == "Color Temperature Light") {
                             bulbs[k] = [id: k, name: v.name, type: v.type, hub:parsedEvent.hub]
                         } else if (v.type == "LightGroup" || v.type == "Room") {
                         	groups[k] = [id: k, name: v.name, type: v.type, hub:parsedEvent.hub]
@@ -913,6 +927,14 @@ def setLevel(childDevice, percent) {
     log.debug "Executing 'setLevel'"
     def level = (percent == 1) ? 1 : Math.min(Math.round(percent * 255 / 100), 255)
     put("lights/${getId(childDevice)}/state", [bri: level, on: percent > 0])
+}
+
+def setColorTemperature(childDevice, huesettings) {
+	log.debug "Executing 'setColorTemperature($huesettings)'"
+	def ct = Math.round(Math.abs((huesettings / 12.96829971181556) - 654))
+	def value = [ct: ct, on: true]
+	log.trace "sending command $value"
+	put("lights/${getId(childDevice)}/state", value)
 }
 
 def setGroupLevel(childDevice, percent, transitiontime) {
