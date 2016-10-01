@@ -929,6 +929,14 @@ def setLevel(childDevice, percent) {
     put("lights/${getId(childDevice)}/state", [bri: level, on: percent > 0])
 }
 
+def setColorTemperature(childDevice, huesettings) {
+	log.debug "Executing 'setColorTemperature($huesettings)'"
+	def ct = Math.round(Math.abs((huesettings / 12.96829971181556) - 654))
+	def value = [ct: ct, on: true]
+	log.trace "sending command $value"
+	put("lights/${getId(childDevice)}/state", value)
+}
+
 def setGroupLevel(childDevice, percent, transitiontime) {
 	log.debug "Executing 'setLevel'"
 	def level = Math.min(Math.round(percent * 255 / 100), 255)
