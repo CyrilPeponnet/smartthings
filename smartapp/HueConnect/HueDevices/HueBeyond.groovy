@@ -1,5 +1,5 @@
 /**
- *  Hue Group
+ *  Hue Beyond Group
  *
  *  Author: Stuart Buchanan Based heavily on original code by Anthony Pastor with thanks
  */
@@ -10,7 +10,7 @@ preferences {
 
 metadata {
 	// Automatically generated. Make future change here.
-	definition (name: "Hue Group", namespace: "smartthings", author: "SmartThings") {
+	definition (name: "Hue Beyond Group", namespace: "smartthings", author: "SmartThings") {
 		capability "Switch Level"
 		capability "Actuator"
 		capability "Color Control"
