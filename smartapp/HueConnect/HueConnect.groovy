@@ -5,8 +5,8 @@
  *  
  *  Updated By: Steven Dale
  *
- *  Updated: 1/10/2016
- *  Version: 1.06
+ *  Updated: 4/10/2016
+ *  Version: 1.07
  *
  *  Copyright 2015 SmartThings
  *
@@ -439,7 +439,7 @@ def itemListHandler(hub, data = "") {
 				log.debug("Its a bulb")}
                     bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
                 }  
-		   else if (v.type == "LightGroup" || v.type == "Room") {
+		   else if (v.type == "LightGroup" || v.type == "Room" || v.type =="LightSource") {
                 	log.debug("Its a group")
                     //def lights = []
                 	//v.lights.each { light -> lights << state.bulbs?."${light}".name}
@@ -720,7 +720,7 @@ def locationHandler(evt) {
                     body.each { k,v ->
                         if (v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light" || v.type == "Color Temperature Light") {
                             bulbs[k] = [id: k, name: v.name, type: v.type, hub:parsedEvent.hub]
-                        } else if (v.type == "LightGroup" || v.type == "Room") {
+                        } else if (v.type == "LightGroup" || v.type == "Room" || v.type =="LightSource") {
                         	groups[k] = [id: k, name: v.name, type: v.type, hub:parsedEvent.hub]
                         } else {
                             scenes[k] = [id: k, name: v.name, hub:parsedEvent.hub]
@@ -804,7 +804,7 @@ updateBridgeStatus(childDevice)
                     def g = bulbs.find{it.deviceNetworkId == "${app.id}/GROUP${bulb.key}"}
                     if (g) {
                 		log.trace "Matched group in Response"
-	                	if(bulb.value.type == "LightGroup" || bulb.value.type == "Room")
+	                	if(bulb.value.type == "LightGroup" || bulb.value.type == "Room" || v.type =="LightSource")
                 			{
                 				log.trace "Reading Poll for Groups"
                        			sendEvent(g.deviceNetworkId, [name: "switch", value: bulb.value?.action?.on ? "on" : "off"])
