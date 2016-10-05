@@ -17,25 +17,25 @@ metadata {
     }
  
    tiles(scale: 2) {
-     	multiAttributeTile(name:"rich-control"){
-			tileAttribute ("device.status", key: "PRIMARY_CONTROL") {
-				attributeState "Offline", label: '${currentValue}', action: "", icon: "st.Lighting.light99-hue", backgroundColor: "#ffffff"
-	            attributeState "Online", label: '${currentValue}', action: "", icon: "st.Lighting.light99-hue", backgroundColor: "#79b821"
-			}
-			}
-		valueTile("doNotRemove", "v", decoration: "flat", height: 2, width: 6, inactiveLabel: false) {
-			state "default", label:'If removed, Hue lights will not work properly'
-		}
-        valueTile("serialNumber", "device.serialNumber", decoration: "flat", height: 2, width: 6, inactiveLabel: false) {
-            state "default", label:'SN: ${currentValue}'
-        }
-		valueTile("networkAddress", "device.networkAddress", decoration: "flat", height: 2, width: 6, inactiveLabel: false) {
-			state "default", label:'IP: ${currentValue}'
-		}
+       multiAttributeTile(name: "rich-control") {
+           tileAttribute("device.status", key: "PRIMARY_CONTROL") {
+               attributeState "Offline", label: '${currentValue}', action: "", icon: "st.Lighting.light99-hue", backgroundColor: "#ffffff"
+               attributeState "Online", label: '${currentValue}', action: "", icon: "st.Lighting.light99-hue", backgroundColor: "#79b821"
+           }
+       }
+       valueTile("doNotRemove", "v", decoration: "flat", height: 2, width: 6, inactiveLabel: false) {
+           state "default", label: 'If removed, Hue lights will not work properly'
+       }
+       valueTile("serialNumber", "device.serialNumber", decoration: "flat", height: 2, width: 6, inactiveLabel: false) {
+           state "default", label: 'SN: ${currentValue}'
+       }
+       valueTile("networkAddress", "device.networkAddress", decoration: "flat", height: 2, width: 6, inactiveLabel: false) {
+           state "default", label: 'IP: ${currentValue}'
+       }
 
-		main (["rich-control"])
-		details(["rich-control", "doNotRemove", "serialNumber", "networkAddress"])
-	}
+       main(["rich-control"])
+       details(["rich-control", "doNotRemove", "serialNumber", "networkAddress"])
+   }
 }
 
 // parse events into attributes
