@@ -12,6 +12,7 @@ metadata {
         capability "Switch"
         capability "Refresh"
         capability "Sensor"
+	capability "Health Check"    
 
         command "refresh"
         command "alertBlink"
@@ -104,6 +105,10 @@ def setLevel(percent) {
 def refresh() {
     log.debug "Executing 'refresh'"
     parent.manualRefresh()
+}
+
+def ping() {
+    log.debug "${parent.ping(this)}"
 }
 
 def setAlert(v) {
