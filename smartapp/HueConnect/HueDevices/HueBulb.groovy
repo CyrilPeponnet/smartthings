@@ -13,6 +13,7 @@ metadata {
         capability "Switch"
         capability "Refresh"
         capability "Sensor"
+	capability "Health Check"
 
         command "setAdjustedColor"
         command "reset"
@@ -194,6 +195,10 @@ def setAdjustedColor(value) {
 def refresh() {
     log.debug "Executing 'refresh'"
     parent.manualRefresh()
+}
+
+def ping() {
+    log.debug "${parent.ping(this)}"
 }
 
 def adjustOutgoingHue(percent) {
