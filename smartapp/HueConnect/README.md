@@ -1,19 +1,29 @@
 # Hue (ReConnect)
 
-This is my attempt to improve the existing HueConnect smartapp by adding scene handling.
-
-You can now add the scene you want this will create for you a push button to enable scenes. \o/
+This is my attempt to improve the existing HueConnect smartapp by adding Groups, Scenes and Hue Beyond support.
 
 ## How it looks
 
 SmartApp
-
-<img src="https://dl.dropboxusercontent.com/u/2663552/Github/Smartthings/HueConnect/IMG_0774.jpg" width="300px">
+<img src="https://github.com/tmleafs/Hue-RE-Connect/blob/master/smartapp/HueConnect/Screenshots/App.png" width="300px">
 
 Hue Scene device
+<img src="https://github.com/tmleafs/Hue-RE-Connect/blob/master/smartapp/HueConnect/Screenshots/scene.png" width="300px">
 
-<img src="https://dl.dropboxusercontent.com/u/2663552/Github/Smartthings/HueConnect/IMG_0933.jpg" width="300px">
+Hue White Ambiance Bulb
+<img src="https://github.com/tmleafs/Hue-RE-Connect/blob/master/smartapp/HueConnect/Screenshots/White%20Ambiance%20Bulb.png" width="300px">
 
+Hue Group or Hew Beyond Lights
+<img src="https://github.com/tmleafs/Hue-RE-Connect/blob/master/smartapp/HueConnect/Screenshots/group.png" width="300px">
+
+Hue Colour Lights
+<img src="https://github.com/tmleafs/Hue-RE-Connect/blob/master/smartapp/HueConnect/Screenshots/Colour%20Bulb.png" width="300px">
+
+Hue Lux Lights
+<img src="https://github.com/tmleafs/Hue-RE-Connect/blob/master/smartapp/HueConnect/Screenshots/White%20Bulb.png" width="300px">
+
+Hue Bridge
+<img src="https://github.com/tmleafs/Hue-RE-Connect/blob/master/smartapp/HueConnect/Screenshots/bridge.png" width="300px">
 
 ## How to install
 
