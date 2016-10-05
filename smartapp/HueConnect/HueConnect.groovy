@@ -2,7 +2,7 @@
  *  Hue Service Manager
  *
  *  Author: Juan Risso (juan@smartthings.com)
- *  
+ *
  *  Copyright 2015 SmartThings
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
@@ -429,11 +429,11 @@ def itemListHandler(hub, data = "") {
                 // hacky way to guess if it's a bulb or a scene
                 if(v.type == "Extended color light" || v.type == "Color light" || v.type == "Dimmable light" || v.type == "Color temperature light") {
 			if(v.type == "Color temperature light"){
-			log.debug("Its a Color temperature light")	
-			}else{	
+			log.debug("Its a Color temperature light")
+			}else{
 				log.debug("Its a bulb")}
                     bulbs[k] = [id: k, name: v.name, type: v.type, hub:hub]
-                }  
+                }
 		   else if (v.type == "LightGroup" || v.type == "Room" || v.type =="LightSource") {
                 	log.debug("Its a group")
                     //def lights = []
@@ -443,7 +443,7 @@ def itemListHandler(hub, data = "") {
                 	log.debug("Its a scene")
                    //def lights = []
                    // v.lights.each { light -> lights << state.bulbs?."${light}".name}
-                    scenes[k] = [id: k, name: v.name, hub:hub, lastupdated:v?.lastupdated]  
+                    scenes[k] = [id: k, name: v.name, hub:hub, lastupdated:v?.lastupdated]
                 }
             }
         }
@@ -477,7 +477,7 @@ def addBulbs() {
                     // If we have dimmable light use the lux device otherwise use standard hue bulb device
                     if (newHueBulb?.value?.type?.equalsIgnoreCase("Dimmable light")) {
                         d = addChildDevice("smartthings", "Hue Lux Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
-                    } 
+                    }
 		    else if(newHueBulb?.value?.type?.equalsIgnoreCase("Color temperature light")) {
                         d = addChildDevice("smartthings", "Hue White Ambiance Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
                     }
@@ -552,20 +552,20 @@ def addGroups() {
     log.debug "Entered addGroups"
 	selectedGroups?.each { dni ->
 		def d = getChildDevice(dni)
-		if(!d) 
+		if(!d)
 		{
 			def newHueGroup
-			if (groups instanceof java.util.Map) 
+			if (groups instanceof java.util.Map)
 			{
             	log.debug "Adding a New Hue Group"
 				newHueGroup = groups.find { (app.id + "/GROUP" + it.value.id) == dni }
 				d = addChildDevice("smartthings", "Hue Group", dni, newHueGroup?.value.hub, ["label":newHueGroup?.value.name, "groupID":newHueGroup?.value.id])
-			} 
+			}
 
 			log.debug "created ${d.displayName} with id $dni"
 			d.refresh()
-		} 
-		else 
+		}
+		else
 		{
 			log.debug "found ${d.displayName} with id $dni already exists, type: '$d.typeName'"
 		}
@@ -804,7 +804,7 @@ updateBridgeStatus(childDevice)
                 				log.trace "Reading Poll for Groups"
                        			sendEvent(g.deviceNetworkId, [name: "switch", value: bulb.value?.action?.on ? "on" : "off"])
                         		sendEvent(g.deviceNetworkId, [name: "level", value: Math.round(bulb.value.action.bri * 100 / 255)])
-                        if (bulb.value.action.sat) 
+                        if (bulb.value.action.sat)
                         	{
                            		def hue = Math.min(Math.round(bulb.value.action.hue * 100 / 65535), 65535) as int
                             	def sat = Math.round(bulb.value.action.sat * 100 / 255) as int
@@ -816,11 +816,11 @@ updateBridgeStatus(childDevice)
 						if (bulb.value.action.alert) { sendEvent(g.deviceNetworkId, [name: "alert", value: bulb.value?.action?.alert]) }
                         if (bulb.value.action.transitiontime) { sendEvent(g.deviceNetworkId, [name: "transitiontime", value: bulb.value?.action?.transitiontime ?: 0]) }
 						if (bulb.value.action.colormode) { sendEvent(g.deviceNetworkId, [name: "colormode", value: bulb.value?.action?.colormode]) }
-                            
+
                             }
                   	 	}
-	                        
-               	 	} 
+
+               	 	}
                 }
             }
             else
@@ -858,10 +858,10 @@ updateBridgeStatus(childDevice)
                                     hsl[childDeviceNetworkId].hue = Math.min(Math.round(v * 100 / 65535), 65535) as int
                                     break
                                 case "effect":
-                                    sendEvent(childDeviceNetworkId, [name: "effect", value: v]) 
+                                    sendEvent(childDeviceNetworkId, [name: "effect", value: v])
                                     break
                                 case "alert":
-                                    sendEvent(childDeviceNetworkId, [name: "alert", value: v]) 
+                                    sendEvent(childDeviceNetworkId, [name: "alert", value: v])
                                     break
                             }
                         }
@@ -1016,7 +1016,7 @@ def setEffect(childDevice, desired) {
     log.debug "Executing 'setEffect'"
     put("lights/${getId(childDevice)}/state", [effect: desired])
 }
- 
+
 def setAlert(childDevice, desired) {
     log.debug "Executing 'setAlert'"
     put("lights/${getId(childDevice)}/state", [alert: desired])
@@ -1026,7 +1026,7 @@ def setGroupEffect(childDevice, desired) {
     log.debug "Executing 'setGroupEffect'"
     put("groups/${getGroupID(childDevice)}/action", [effect: desired])
 }
- 
+
 def setGroupAlert(childDevice, desired) {
     log.debug "Executing 'setGroupAlert'"
     put("groups/${getGroupID(childDevice)}/action", [alert: desired])
