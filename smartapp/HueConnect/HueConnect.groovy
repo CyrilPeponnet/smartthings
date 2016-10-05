@@ -3,11 +3,6 @@
  *
  *  Author: Juan Risso (juan@smartthings.com)
  *  
- *  Updated By: Steven Dale
- *
- *  Updated: 5/10/2016
- *  Version: 1.10
- *
  *  Copyright 2015 SmartThings
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
@@ -817,8 +812,6 @@ updateBridgeStatus(childDevice)
                             	sendEvent(g.deviceNetworkId, [name: "color", value: hex])
                             	sendEvent(g.deviceNetworkId, [name: "hue", value: hue])
                             	sendEvent(g.deviceNetworkId, [name: "saturation", value: sat])
-                               // sendEvent(d.deviceNetworkId, [name: "effect", value: bulb.value?.action?.effect])
-                               // sendEvent(d.deviceNetworkId, [name: "alert", value: bulb.value?.action?.alert])
                         if (bulb.value.action.effect) { sendEvent(g.deviceNetworkId, [name: "effect", value: bulb.value?.action?.effect]) }
 						if (bulb.value.action.alert) { sendEvent(g.deviceNetworkId, [name: "alert", value: bulb.value?.action?.alert]) }
                         if (bulb.value.action.transitiontime) { sendEvent(g.deviceNetworkId, [name: "transitiontime", value: bulb.value?.action?.transitiontime ?: 0]) }
