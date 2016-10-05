@@ -1,16 +1,16 @@
 /**
- *  Hue Group
+ *  Hue Beyond Group
  *
  *  Author: Stuart Buchanan Based heavily on original code by Anthony Pastor with thanks
  */
 // for the UI
 preferences {
-	input("transitionTimePref", "integer", title: " time it takes for the lights to transition state (default: 2)")	
+	input("transitionTimePref", "integer", title: " time it takes for the lisght to transition state(default: 2)")	
 }
 
 metadata {
 	// Automatically generated. Make future change here.
-	definition (name: "Hue Group", namespace: "smartthings", author: "SmartThings") {
+	definition (name: "Hue Beyond Group", namespace: "smartthings", author: "SmartThings") {
 		capability "Switch Level"
 		capability "Actuator"
 		capability "Color Control"
