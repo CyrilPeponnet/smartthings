@@ -5,7 +5,7 @@
  */
 // for the UI
 preferences {
-	input("transitionTimePref", "integer", title: " time it takes for the lisght to transition state(default: 2)")	
+	input("transitionTimePref", "integer", title: " time it takes for the lights to transition state (default: 2)")	
 }
 
 metadata {
