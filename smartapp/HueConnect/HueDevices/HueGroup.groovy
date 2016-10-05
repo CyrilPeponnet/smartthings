@@ -5,11 +5,10 @@
  */
 // for the UI
 preferences {
-	input("transitionTimePref", "integer", title: " time it takes for the lights to transition state (default: 2)")	
+	input("transitionTimePref", "integer", title: "Time it takes for the lights to transition (default: 2)")   
 }
 
 metadata {
-	// Automatically generated. Make future change here.
 	definition (name: "Hue Group", namespace: "smartthings", author: "SmartThings") {
 		capability "Switch Level"
 		capability "Actuator"
@@ -18,7 +17,6 @@ metadata {
 		capability "Polling"
 		capability "Refresh"
 		capability "Sensor"
-		capability "Test Capability" //Hope to replace with Transistion Time
 
 		command "setAdjustedColor"
         command "effectColorloop"        
@@ -26,6 +24,8 @@ metadata {
         command "alertBlink"
         command "alertPulse"
         command "alertNone"
+        command "refresh"
+        command "reset"
         
         attribute "alertMode", "string"
         attribute "effectMode", "string"
@@ -36,70 +36,51 @@ metadata {
 		// TODO: define status and reply messages here
 	}
 
-	standardTile("switch", "device.switch", width: 1, height: 1, canChangeIcon: true) {
-		state "on", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-multi", backgroundColor:"#79b821" 
-		state "off", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-multi", backgroundColor:"#ffffff"
-	}
-    
-	standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
-		state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
-	}
-    
-	controlTile("rgbSelector", "device.color", "color", height: 3, width: 3, inactiveLabel: false) {
-		state "color", action:"setAdjustedColor"
-	}
-    
-	controlTile("levelSliderControl", "device.level", "slider", height: 1, width: 2, inactiveLabel: false) {
-		state "level", action:"switch level.setLevel"
-	}
-    
-	valueTile("level", "device.level", inactiveLabel: false, decoration: "flat") {
-		state "level", label: 'Level ${currentValue}%'
-	}
-    
-	controlTile("saturationSliderControl", "device.saturation", "slider", height: 1, width: 2, inactiveLabel: false) {
-		state "saturation", action:"color control.setSaturation"
-	}
-    
-	valueTile("saturation", "device.saturation", inactiveLabel: false, decoration: "flat") {
-		state "saturation", label: 'Sat ${currentValue}    '
-	}
-    
-	controlTile("hueSliderControl", "device.hue", "slider", height: 1, width: 2, inactiveLabel: false) {
-		state "hue", action:"color control.setHue"
-	}
-    
-	valueTile("hue", "device.hue", inactiveLabel: false, decoration: "flat") {
-		state "hue", label: 'Hue ${currentValue}   '
-	}
-    
-	valueTile("transitiontime", "device.transitiontime", inactiveLabel: false, decoration: "flat") {
-		state "transitiontime", label: 'Transitiontime ${currentValue}   '
-	}
-    
-    valueTile("color", "device.color", inactiveLabel: false, decoration: "flat") {
-		state "color", label: 'color ${currentValue}   '
-	}
-    
-	valueTile("groupID", "device.groupID", inactiveLabel: false, decoration: "flat") {
-		state "groupID", label: 'groupID ${currentValue}   '
-	}
-    
-    standardTile("effectSelector", "device.effectMode", decoration: "flat", width: 1, height: 1) {
-       	state "colorloop on", label:'${name}', icon:"st.Weather.weather3", action:"effectColorloop", nextState:"colorloop off"
-        state "colorloop off", label:'${name}', icon:"st.Weather.weather3", action:"effectNone", nextState:"colorloop on"
-	}
-        
-    standardTile("alertSelector", "device.alertMode", decoration: "flat", width: 1, height: 1) {
-      	state "blink", label:'${name}', action:"alertBlink", icon:"st.Lighting.light11", backgroundColor:"#ffffff", nextState:"pulse"
-        state "pulse", label:'${name}', action:"alertPulse", icon:"st.Lighting.light11", backgroundColor:"#e3eb00", nextState:"off"
-        state "off", label:'${name}', action:"alertNone", icon:"st.Lighting.light13", backgroundColor:"#79b821", nextState:"blink"
-    }
-    
-	main(["switch"])
-	details(["switch", "levelSliderControl", "rgbSelector", "refresh", "transitiontime", "groupID", "effectSelector", "alertSelector"])
+    tiles(scale: 2) {
+        multiAttributeTile(name: "switch", type: "lighting", width: 6, height: 6, canChangeIcon: true) {
+            tileAttribute("device.switch", key: "PRIMARY_CONTROL") {
+                attributeState "on", label: '${name}', action: "switch.off", icon: "st.lights.philips.hue-single", backgroundColor: "#79b821", nextState: "turningOff"
+                attributeState "off", label: '${name}', action: "switch.on", icon: "st.lights.philips.hue-single", backgroundColor: "#ffffff", nextState: "turningOn"
+                attributeState "turningOn", label: '${name}', action: "switch.off", icon: "st.lights.philips.hue-single", backgroundColor: "#79b821", nextState: "turningOff"
+                attributeState "turningOff", label: '${name}', action: "switch.on", icon: "st.lights.philips.hue-single", backgroundColor: "#ffffff", nextState: "turningOn"
+            }
+            tileAttribute("device.level", key: "SLIDER_CONTROL") {
+                attributeState "level", action: "switch level.setLevel"
+            }
+            tileAttribute("device.color", key: "COLOR_CONTROL") {
+                attributeState "color", action: "setAdjustedColor"
+            }
+        }
 
-}
+        standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+            state "default", label: "", action: "refresh.refresh", icon: "st.secondary.refresh"
+        }
+
+        standardTile("effectSelector", "device.effectMode", decoration: "flat", width: 2, height: 2) {
+            state "colorloop on", label: '${name}', icon: "st.Weather.weather3", action: "effectColorloop", nextState: "colorloop off"
+            state "colorloop off", label: '${name}', icon: "st.Weather.weather3", action: "effectNone", nextState: "colorloop on"
+        }
+
+        standardTile("alertSelector", "device.alertMode", decoration: "flat", width: 2, height: 2) {
+            state "blink", label: '${name}', action: "alertBlink", icon: "st.Lighting.light11", backgroundColor: "#ffffff", nextState: "pulse"
+            state "pulse", label: '${name}', action: "alertPulse", icon: "st.Lighting.light11", backgroundColor: "#e3eb00", nextState: "off"
+            state "off", label: '${name}', action: "alertNone", icon: "st.Lighting.light13", backgroundColor: "#79b821", nextState: "blink"
+        }
+
+        standardTile("reset", "device.reset", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+            state "default", label: "Reset Color", action: "reset", icon: "st.lights.philips.hue-single"
+        }
+        valueTile("groupID", "device.groupID", inactiveLabel: false, decoration: "flat", width: 4, height: 2) {
+            state "groupID", label: 'The Group ID is ${currentValue}   '
+        }
+        valueTile("transitiontime", "device.transitiontime", inactiveLabel: false, decoration: "flat", width: 6, height: 2) {
+            state "transitiontime", label: 'Transitiontime is set to ${currentValue}   '
+        }
+    }
+
+    main(["switch"])
+    details(["switch", "refresh", "effectSelector", "alertSelector", "reset", "groupID", "transitiontime"])
+    }
 
 // parse events into attributes
 def parse(description) {
@@ -268,6 +249,13 @@ def setColor(value) {
 		sendEvent(name: "switch", value: value.switch)
 	}
 	parent.setGroupColor(this, value)
+}
+
+def reset() {
+    log.debug "Executing 'reset'"
+    def value = [level:100, hex:"#90C638", saturation:56, hue:23]
+    setAdjustedColor(value)
+    parent.poll()
 }
 
 def setAdjustedColor(value) {
