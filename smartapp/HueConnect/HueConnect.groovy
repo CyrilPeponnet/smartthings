@@ -1050,6 +1050,15 @@ def nextLevel(childDevice) {
     setLevel(childDevice,level)
 }
 
+def ping(childDevice) {
+    if (isOnline(getId(childDevice))) {
+        childDevice.sendEvent(name: "deviceWatch-ping", value: "ONLINE", description: "Hue Light is reachable", displayed: false, isStateChange: true)
+        return "Device is Online"
+    } else {
+        return "Device is Offline"
+    }
+}
+
 private getId(childDevice) {
     if (childDevice.device?.deviceNetworkId?.startsWith("HUE")) {
         return childDevice.device?.deviceNetworkId[3..-1]
