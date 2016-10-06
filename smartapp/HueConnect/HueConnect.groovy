@@ -799,7 +799,7 @@ updateBridgeStatus(childDevice)
                     def g = bulbs.find{it.deviceNetworkId == "${app.id}/GROUP${bulb.key}"}
                     if (g) {
                 		log.trace "Matched group in Response"
-	                	if(bulb.value.type == "LightGroup" || bulb.value.type == "Room" || v.type =="LightSource")
+	                	if(bulb.value.type == "LightGroup" || bulb.value.type == "Room" || bulb.value.type =="LightSource")
                 			{
                 				log.trace "Reading Poll for Groups"
                        			sendEvent(g.deviceNetworkId, [name: "switch", value: bulb.value?.action?.on ? "on" : "off"])
