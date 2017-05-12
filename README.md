@@ -1,3 +1,9 @@
 # smartthings
 
-My Smartthings stuff, you can find readme in each folders describing what's inside.
+My Smartthings stuffs
+
+The Cube
+Hue Reconnect
+Fibaro motion Sensor DHT
+
+See related .md files.

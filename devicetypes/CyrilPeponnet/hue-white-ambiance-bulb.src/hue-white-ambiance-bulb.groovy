@@ -21,7 +21,7 @@ metadata {
         command "alertBlink"
         command "alertPulse"
         command "alertNone"
-        
+
         attribute "alertMode", "string"
     }
 
@@ -56,7 +56,7 @@ metadata {
         standardTile("refresh", "device.refresh", height: 2, width: 2, inactiveLabel: false, decoration: "flat") {
             state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
         }
-        
+
        standardTile("alertSelector", "device.alertMode", decoration: "flat", width: 2, height: 2) {
        state "blink", label:'${name}', action:"alertBlink", icon:"st.Lighting.light11", backgroundColor:"#ffffff", nextState:"pulse"
        state "pulse", label:'${name}', action:"alertPulse", icon:"st.Lighting.light11", backgroundColor:"#e3eb00", nextState:"off"
