@@ -315,14 +315,11 @@ Map scenesDiscovered() {
             }
         }
         scenes.each {
-            if (it.value.id == sceneTime?."${it.value.name.minus(~/ on \d+/)}"?.id && it.value.name ==~ /.* on \d+$/)
-            {
                 log.trace "Adding ${it.value.name} to scene list"
                 def lights = it.value.lights ? " ${it.value.lights}" : ''
                 def value = "${it.value.name.minus(~/ on \d+/)}${lights}"
                 def key = app.id +"/"+ it.value.id
                 scenemap["${key}"] = value
-            }
         }
     }
 
