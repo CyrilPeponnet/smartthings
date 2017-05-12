@@ -473,13 +473,13 @@ def addBulbs() {
                 if (newHueBulb) {
                     // If we have dimmable light use the lux device otherwise use standard hue bulb device
                     if (newHueBulb?.value?.type?.equalsIgnoreCase("Dimmable light")) {
-                        d = addChildDevice("smartthings", "Hue Lux Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
+                        d = addChildDevice("cyrilpeponnet", "Hue Lux Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
                     }
 		    else if(newHueBulb?.value?.type?.equalsIgnoreCase("Color temperature light")) {
-                        d = addChildDevice("smartthings", "Hue White Ambiance Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
+                        d = addChildDevice("cyrilpeponnet", "Hue White Ambiance Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
                     }
 		    else {
-                        d = addChildDevice("smartthings", "Hue Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
+                        d = addChildDevice("cyrilpeponnet", "Hue Bulb", dni, newHueBulb?.value.hub, ["label":newHueBulb?.value.name])
                     }
                     log.debug "created ${d.displayName} with id $dni"
                     d.refresh()
@@ -512,7 +512,7 @@ def addScenes() {
                 def group = "0"
                 if (!d)
                 {
-                    d = addChildDevice("smartthings", "Hue Scene", dni, newHueScene?.value.hub, ["name":name])
+                    d = addChildDevice("cyrilpeponnet", "Hue Scene", dni, newHueScene?.value.hub, ["name":name])
                     log.debug "created ${d.displayName} with id $dni"
                 } else {
                     log.debug "found ${d.displayName} with id $dni already exists, type: '$d.typeName'"
@@ -556,7 +556,7 @@ def addGroups() {
 			{
             	log.debug "Adding a New Hue Group"
 				newHueGroup = groups.find { (app.id + "/GROUP" + it.value.id) == dni }
-				d = addChildDevice("smartthings", "Hue Group", dni, newHueGroup?.value.hub, ["label":newHueGroup?.value.name, "groupID":newHueGroup?.value.id])
+				d = addChildDevice("cyrilpeponnet", "Hue Group", dni, newHueGroup?.value.hub, ["label":newHueGroup?.value.name, "groupID":newHueGroup?.value.id])
 			}
 
 			log.debug "created ${d.displayName} with id $dni"
@@ -593,7 +593,7 @@ def addBridge() {
                 }
             }
             if (newbridge) {
-                d = addChildDevice("smartthings", "Hue Bridge", selectedHue, vbridge.value.hub)
+                d = addChildDevice("cyrilpeponnet", "Hue Bridge", selectedHue, vbridge.value.hub)
                 log.debug "created ${d.displayName} with id ${d.deviceNetworkId}"
                 def childDevice = getChildDevice(d.deviceNetworkId)
                 childDevice.sendEvent(name: "serialNumber", value: vbridge.value.serialNumber)
