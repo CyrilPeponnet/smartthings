@@ -6,7 +6,7 @@
 // for the UI
 metadata {
     // Automatically generated. Make future change here.
-    definition (name: "Hue Scene", namespace: "smartthings", author: "CyrilPeponnet") {
+    definition (name: "Hue Scene", namespace: "CyrilPeponnet", author: "CyrilPeponnet") {
         capability "Actuator"
         capability "Switch"
         capability "Momentary"

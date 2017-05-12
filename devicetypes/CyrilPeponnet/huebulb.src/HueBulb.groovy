@@ -6,7 +6,7 @@
 // for the UI
 metadata {
     // Automatically generated. Make future change here.
-    definition (name: "Hue Bulb", namespace: "smartthings", author: "SmartThings") {
+    definition (name: "Hue Bulb", namespace: "CyrilPeponnet", author: "SmartThings") {
         capability "Switch Level"
         capability "Actuator"
         capability "Color Control"
@@ -18,12 +18,12 @@ metadata {
         command "setAdjustedColor"
         command "reset"
         command "refresh"
-        command "effectColorloop"        
-        command "effectNone" 
+        command "effectColorloop"
+        command "effectNone"
         command "alertBlink"
         command "alertPulse"
         command "alertNone"
-        
+
         attribute "alertMode", "string"
         attribute "effectMode", "string"
     }
@@ -51,16 +51,16 @@ metadata {
         standardTile("reset", "device.reset", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
             state "default", label:"Reset Color", action:"reset", icon:"st.lights.philips.hue-single"
         }
-        
+
         standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
             state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
         }
-        
+
         standardTile("effectSelector", "device.effectMode", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
         	state "colorloop on", label:'${name}', icon:"st.Weather.weather3", action:"effectColorloop", nextState:"colorloop off"
             state "colorloop off", label:'${name}', icon:"st.Weather.weather3", action:"effectNone", nextState:"colorloop on"
 		}
-        
+
         standardTile("alertSelector", "device.alertMode", decoration: "flat", width: 2, height: 2) {
         	state "blink", label:'${name}', action:"alertBlink", icon:"st.Lighting.light11", backgroundColor:"#ffffff", nextState:"pulse"
             state "pulse", label:'${name}', action:"alertPulse", icon:"st.Lighting.light11", backgroundColor:"#e3eb00", nextState:"off"
@@ -97,7 +97,7 @@ def off() {
     log.trace parent.off(this)
     sendEvent(name: "switch", value: "off")
 }
- 
+
 def setAlert(v) {
     log.debug "setAlert: ${v}, $this"
     parent.setAlert(this, v)
@@ -125,12 +125,12 @@ def setEffect(v) {
     sendEvent(name: "effect", value: v, isStateChange: true)
 }
 
-def effectNone() { 
+def effectNone() {
     log.debug "Effect option: 'none'"
     setEffect("none")
 }
 
-def effectColorloop() { 
+def effectColorloop() {
     log.debug "Effect option: 'colorloop'"
     setEffect("colorloop")
 }

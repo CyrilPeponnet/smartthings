@@ -6,7 +6,7 @@
 // for the UI
 metadata {
     // Automatically generated. Make future change here.
-    definition (name: "Hue Bridge", namespace: "smartthings", author: "SmartThings") {
+    definition (name: "Hue Bridge", namespace: "CyrilPeponnet", author: "SmartThings") {
         attribute "serialNumber", "string"
         attribute "status", "string"
         attribute "networkAddress", "string"
@@ -15,7 +15,7 @@ metadata {
     simulator {
         // TODO: define status and reply messages here
     }
- 
+
    tiles(scale: 2) {
        multiAttributeTile(name: "rich-control") {
            tileAttribute("device.status", key: "PRIMARY_CONTROL") {
@@ -81,7 +81,7 @@ def parse(description) {
                             log.trace "Get state for ${response.keySet()}"
                             log.info parent.itemListHandler(device.hub.id, msg.body)
 
-                    } 
+                    }
                 }
                 else if (contentType?.contains("xml")) {
                     log.debug "HUE BRIDGE ALREADY PRESENT"

@@ -18,7 +18,7 @@
 
 definition(
     name: "Hue (ReConnect)",
-    namespace: "smartthings",
+    namespace: "CyrilPeponnet",
     author: "SmartThings",
     description: "Allows you to connect your Philips Hue lights with SmartThings and control them from your Things area or Dashboard in the SmartThings Mobile app. Adjusts by going to the Thing detail screen for your Hue lights (tap the gear on Hue tiles).\n\nPlease update your Hue Bridge first, outside of the SmartThings app, using the Philips Hue app.",
     category: "SmartThings Labs",
