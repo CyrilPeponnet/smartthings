@@ -9,7 +9,7 @@ preferences {
 }
 
 metadata {
-	definition (name: "Hue Group", namespace: "CyrilPeponnet", author: "SmartThings") {
+	definition (name: "Hue Group", namespace: "cyrilpeponnet", author: "SmartThings") {
 		capability "Switch Level"
 		capability "Actuator"
 		capability "Color Control"

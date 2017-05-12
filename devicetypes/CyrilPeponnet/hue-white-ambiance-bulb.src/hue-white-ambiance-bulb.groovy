@@ -9,7 +9,7 @@
 // for the UI
 metadata {
     // Automatically generated. Make future change here.
-    definition (name: "Hue White Ambiance Bulb", namespace: "CyrilPeponnet", author: "SmartThings") {
+    definition (name: "Hue White Ambiance Bulb", namespace: "cyrilpeponnet", author: "SmartThings") {
         capability "Switch Level"
         capability "Actuator"
         capability "Color Temperature"

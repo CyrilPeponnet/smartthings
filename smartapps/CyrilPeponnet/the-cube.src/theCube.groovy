@@ -5,7 +5,7 @@
 
 definition(
     name: "The Cube",
-    namespace: "CyrilPeponnet",
+    namespace: "cyrilpeponnet",
     author: "Cyril Peponnet",
     description: "Run actions by rotating a cube containing a SmartSense MultiSensor",
     category: "SmartThings Labs",

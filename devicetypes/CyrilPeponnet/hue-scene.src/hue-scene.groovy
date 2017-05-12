@@ -6,7 +6,7 @@
 // for the UI
 metadata {
     // Automatically generated. Make future change here.
-    definition (name: "Hue Scene", namespace: "CyrilPeponnet", author: "CyrilPeponnet") {
+    definition (name: "Hue Scene", namespace: "cyrilpeponnet", author: "CyrilPeponnet") {
         capability "Actuator"
         capability "Switch"
         capability "Momentary"

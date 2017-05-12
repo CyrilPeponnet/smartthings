@@ -6,7 +6,7 @@
 // for the UI
 metadata {
     // Automatically generated. Make future change here.
-    definition (name: "Hue Bulb", namespace: "CyrilPeponnet", author: "SmartThings") {
+    definition (name: "Hue Bulb", namespace: "cyrilpeponnet", author: "SmartThings") {
         capability "Switch Level"
         capability "Actuator"
         capability "Color Control"
