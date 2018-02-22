@@ -1,7 +1,7 @@
 /**
  *  Device Type Definition File
  *
- *  Device Type:        Fibaro Motion Sensor
+ *  Device Type:        Fibaro Motion Sensor ver 2.06
  *  File Name:          FibarMotionSensor.groovy
  *  Initial Release:    2015-06-23
  *  Author:             Cyril Peponnet
@@ -27,7 +27,7 @@
  */
 
 metadata {
-    definition (name: "Fibaro Motion Sensor", namespace: "cyrilpeponnet", author: "Cyril Peponnet") {
+    definition (name: "Fibaro Motion Sensor ver 2.06", namespace: "cyrilpeponnet", author: "Cyril Peponnet") {
 
         attribute   "needUpdate", "string"
 
